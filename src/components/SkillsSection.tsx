@@ -18,7 +18,7 @@ export function SkillsSection() {
   const isInView = useInView(ref, { once: true, margin: '-100px' });
 
   return (
-    <section id="skills" className="bg-black py-24 md:py-32 px-6">
+    <section id="skills" className="bg-black py-24 md:py-32 px-6 noise-overlay">
       <div className="max-w-5xl mx-auto" ref={ref}>
         <h2 className="text-3xl md:text-5xl font-serif text-[#E1E0CC] mb-16 text-center">
           <WordsPullUp text={t.skills.heading} />

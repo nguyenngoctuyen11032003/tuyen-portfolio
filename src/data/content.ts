@@ -61,6 +61,11 @@ export interface Content {
     location: string;
     ctaLabel: string;
   };
+  a11y: {
+    toggleMenu: string;
+    toggleLanguage: string;
+    email: string;
+  };
 }
 
 export const content: Record<Lang, Content> = {
@@ -160,6 +165,11 @@ export const content: Record<Lang, Content> = {
       location: 'Hà Nội, Việt Nam',
       ctaLabel: 'Gửi email cho tôi',
     },
+    a11y: {
+      toggleMenu: 'Mở/đóng menu',
+      toggleLanguage: 'Chuyển ngôn ngữ',
+      email: 'Email',
+    },
   },
   en: {
     nav: {
@@ -255,6 +265,11 @@ export const content: Record<Lang, Content> = {
       email: 'tt98tuyen@gmail.com',
       location: 'Hanoi, Vietnam',
       ctaLabel: 'Email me',
+    },
+    a11y: {
+      toggleMenu: 'Toggle menu',
+      toggleLanguage: 'Toggle language',
+      email: 'Email',
     },
   },
 };

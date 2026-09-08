@@ -21,7 +21,7 @@ describe('Navbar', () => {
         <Navbar />
       </LangProvider>
     );
-    fireEvent.click(screen.getByLabelText('Toggle menu'));
+    fireEvent.click(screen.getByLabelText('Mở/đóng menu'));
     expect(screen.getAllByText('Kinh nghiệm').length).toBeGreaterThan(0);
   });
 });

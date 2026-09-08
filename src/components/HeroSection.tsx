@@ -133,7 +133,7 @@ export function HeroSection() {
         <a
           href={`mailto:${t.contact.email}`}
           className="liquid-glass rounded-full p-4 text-white/80 hover:text-white transition-colors"
-          aria-label="Email"
+          aria-label={t.a11y.email}
         >
           <Mail size={20} />
         </a>

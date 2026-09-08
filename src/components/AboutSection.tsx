@@ -6,7 +6,7 @@ export function AboutSection() {
   const { t } = useLang();
 
   return (
-    <section id="about" className="bg-black py-24 md:py-32 px-6">
+    <section id="about" className="bg-black py-24 md:py-32 px-6 noise-overlay">
       <div className="max-w-5xl mx-auto bg-[#101010] rounded-3xl p-8 md:p-14 flex flex-col md:flex-row gap-10 md:gap-16 items-center">
         <div className="liquid-glass rounded-3xl overflow-hidden w-40 h-40 md:w-56 md:h-56 flex-shrink-0">
           <img src={avatarUrl} alt="Nguyễn Ngọc Tuyền" className="w-full h-full object-cover" />

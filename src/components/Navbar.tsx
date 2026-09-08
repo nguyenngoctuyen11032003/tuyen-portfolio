@@ -36,7 +36,7 @@ export function Navbar() {
           type="button"
           className="md:hidden text-white"
           onClick={() => setOpen((prev) => !prev)}
-          aria-label="Toggle menu"
+          aria-label={t.a11y.toggleMenu}
         >
           {open ? <X size={22} /> : <Menu size={22} />}
         </button>

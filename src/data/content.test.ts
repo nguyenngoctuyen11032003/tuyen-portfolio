@@ -26,4 +26,17 @@ describe('content', () => {
     expect(content.vi.contact.email).toBe('tt98tuyen@gmail.com');
     expect(content.en.contact.email).toBe('tt98tuyen@gmail.com');
   });
+
+  it('has localized a11y labels for both languages', () => {
+    expect(content.vi.a11y).toEqual({
+      toggleMenu: 'Mở/đóng menu',
+      toggleLanguage: 'Chuyển ngôn ngữ',
+      email: 'Email',
+    });
+    expect(content.en.a11y).toEqual({
+      toggleMenu: 'Toggle menu',
+      toggleLanguage: 'Toggle language',
+      email: 'Email',
+    });
+  });
 });
