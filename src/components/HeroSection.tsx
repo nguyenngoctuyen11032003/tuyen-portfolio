@@ -11,7 +11,7 @@ export function splitAccent(headline: string, accent: string): [string, string, 
   return [headline.slice(0, idx).trim(), accent, headline.slice(idx + accent.length).trim()];
 }
 
-function useParticleAurora(canvasRef: React.RefObject<HTMLCanvasElement>) {
+function useParticleAurora(canvasRef: React.RefObject<HTMLCanvasElement | null>) {
   useEffect(() => {
     const canvas = canvasRef.current;
     const ctx = canvas?.getContext('2d');
@@ -65,6 +65,7 @@ function useParticleAurora(canvasRef: React.RefObject<HTMLCanvasElement>) {
     render();
 
     function handleResize() {
+      if (!canvas) return;
       width = canvas.width = canvas.offsetWidth;
       height = canvas.height = canvas.offsetHeight;
     }
