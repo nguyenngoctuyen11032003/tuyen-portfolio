@@ -34,7 +34,7 @@ export function Navbar() {
   return (
     <nav className="fixed top-5 left-1/2 -translate-x-1/2 z-50 w-[95%] max-w-3xl">
       <div className="liquid-glass rounded-full px-4 py-2.5 md:px-6 flex items-center justify-between">
-        <span className="font-serif italic text-xl text-[#DEDBC8]">NNT</span>
+        <span className="font-serif italic text-xl text-primary">NNT</span>
 
         <div className="hidden md:flex items-center gap-6">
           {t.nav.links.map((link) => (

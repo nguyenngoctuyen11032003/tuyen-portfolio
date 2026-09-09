@@ -11,7 +11,7 @@ export function ExperienceSection() {
   return (
     <section id="experience" className="bg-black py-24 md:py-32 px-6 noise-overlay">
       <div className="max-w-3xl mx-auto" ref={ref}>
-        <h2 className="text-3xl md:text-5xl font-serif text-[#E1E0CC] mb-16 text-center">
+        <h2 className="text-3xl md:text-5xl font-serif text-primary mb-16 text-center">
           <WordsPullUp text={t.experience.heading} />
         </h2>
 
@@ -28,7 +28,7 @@ export function ExperienceSection() {
             >
               <div className="absolute -left-8 md:-left-10 top-1 liquid-glass rounded-full w-4 h-4 md:w-[18px] md:h-[18px]" />
               <p className="text-white/40 text-xs tracking-widest uppercase mb-2">{item.period}</p>
-              <h3 className="text-[#E1E0CC] text-lg md:text-xl font-medium">
+              <h3 className="text-primary text-lg md:text-xl font-medium">
                 {item.role} · {item.org}
               </h3>
               <p className="text-white/60 text-sm mt-1">{item.focus}</p>

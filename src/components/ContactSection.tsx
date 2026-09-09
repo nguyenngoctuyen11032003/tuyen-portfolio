@@ -9,7 +9,7 @@ export function ContactSection() {
   return (
     <section id="contact" className="bg-black pt-24 pb-16 px-6 noise-overlay">
       <div className="max-w-3xl mx-auto text-center">
-        <h2 className="text-4xl md:text-6xl font-serif italic text-[#E1E0CC] mb-10 leading-tight">
+        <h2 className="text-4xl md:text-6xl font-serif italic text-primary mb-10 leading-tight">
           <WordsPullUp text={t.contact.heading} />
         </h2>
 

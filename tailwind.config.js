@@ -4,7 +4,7 @@ export default {
   theme: {
     extend: {
       colors: {
-        primary: '#DEDBC8',
+        primary: '#34D399',
       },
       fontFamily: {
         serif: ['"Instrument Serif"', 'serif'],

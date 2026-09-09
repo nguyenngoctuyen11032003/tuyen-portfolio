@@ -121,7 +121,7 @@ function useParticleAurora(canvasRef: React.RefObject<HTMLCanvasElement | null>)
     let width = (canvas.width = canvas.offsetWidth);
     let height = (canvas.height = canvas.offsetHeight);
 
-    const particles = Array.from({ length: 60 }, () => ({
+    const particles = Array.from({ length: 110 }, () => ({
       x: Math.random() * width,
       y: Math.random() * height,
       r: Math.random() * 1.5 + 0.5,
@@ -142,7 +142,7 @@ function useParticleAurora(canvasRef: React.RefObject<HTMLCanvasElement | null>)
         height * 0.5,
         width * 0.8
       );
-      gradient.addColorStop(0, 'rgba(222, 219, 200, 0.08)');
+      gradient.addColorStop(0, 'rgba(52, 211, 153, 0.1)');
       gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, width, height);
@@ -157,7 +157,7 @@ function useParticleAurora(canvasRef: React.RefObject<HTMLCanvasElement | null>)
 
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(222, 219, 200, 0.5)';
+        ctx.fillStyle = 'rgba(110, 231, 183, 0.6)';
         ctx.fill();
       });
 
@@ -218,7 +218,7 @@ export function HeroSection() {
       <SpotlightReveal containerRef={sectionRef} imageUrl={avatarUrl} />
 
       <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-6 py-20 text-center gap-8">
-        <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-serif leading-tight max-w-4xl text-[#E1E0CC]">
+        <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-serif leading-tight max-w-4xl text-primary">
           <WordsPullUp text={before} />
           {accent && <WordsPullUp text={accent} wordClassName="italic" />}
           {after && <WordsPullUp text={after} />}
