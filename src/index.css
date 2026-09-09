@@ -4,9 +4,30 @@
 @tailwind components;
 @tailwind utilities;
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   background: #000000;
   font-family: 'Barlow', sans-serif;
+}
+
+section[id] {
+  scroll-margin-top: 6rem;
+}
+
+a:focus-visible,
+button:focus-visible {
+  outline: 2px solid #dedbc8;
+  outline-offset: 3px;
+  border-radius: inherit;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
 }
 
 @layer components {

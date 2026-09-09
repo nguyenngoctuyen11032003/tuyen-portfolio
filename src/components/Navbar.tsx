@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Menu, X } from 'lucide-react';
 import { useLang } from '../context/LangContext';
 import { LangToggle } from './ui/LangToggle';
@@ -7,6 +7,29 @@ import { PillButton } from './ui/PillButton';
 export function Navbar() {
   const { t } = useLang();
   const [open, setOpen] = useState(false);
+  const [activeHref, setActiveHref] = useState(t.nav.links[0]?.href ?? '');
+
+  useEffect(() => {
+    const sections = t.nav.links
+      .map((link) => document.querySelector(link.href))
+      .filter((el): el is Element => el !== null);
+
+    if (sections.length === 0) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setActiveHref(`#${entry.target.id}`);
+          }
+        });
+      },
+      { rootMargin: '-45% 0px -50% 0px', threshold: 0 }
+    );
+
+    sections.forEach((section) => observer.observe(section));
+    return () => observer.disconnect();
+  }, [t.nav.links]);
 
   return (
     <nav className="fixed top-5 left-1/2 -translate-x-1/2 z-50 w-[95%] max-w-3xl">
@@ -18,7 +41,10 @@ export function Navbar() {
             <a
               key={link.href}
               href={link.href}
-              className="text-sm font-medium text-white/70 hover:text-white transition-colors"
+              aria-current={activeHref === link.href ? 'true' : undefined}
+              className={`text-sm font-medium transition-colors ${
+                activeHref === link.href ? 'text-white' : 'text-white/70 hover:text-white'
+              }`}
             >
               {link.label}
             </a>
@@ -48,7 +74,8 @@ export function Navbar() {
             <a
               key={link.href}
               href={link.href}
-              className="text-sm font-medium text-white/80"
+              aria-current={activeHref === link.href ? 'true' : undefined}
+              className={`text-sm font-medium ${activeHref === link.href ? 'text-white' : 'text-white/80'}`}
               onClick={() => setOpen(false)}
             >
               {link.label}

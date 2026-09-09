@@ -4,6 +4,8 @@ import { ArrowUpRight } from 'lucide-react';
 import { useLang } from '../context/LangContext';
 import { WordsPullUp } from './ui/WordsPullUp';
 
+const GRADIENT_POSITIONS = ['30% 20%', '80% 15%', '20% 80%', '85% 75%'];
+
 export function ProjectsSection() {
   const { t } = useLang();
   const ref = useRef(null);
@@ -28,7 +30,7 @@ export function ProjectsSection() {
               <div
                 className="absolute inset-0 opacity-40 transition-transform duration-700 group-hover:scale-105"
                 style={{
-                  background: 'radial-gradient(circle at 30% 20%, rgba(222,219,200,0.15), transparent 60%)',
+                  background: `radial-gradient(circle at ${GRADIENT_POSITIONS[i % GRADIENT_POSITIONS.length]}, rgba(222,219,200,0.15), transparent 60%)`,
                 }}
               />
               <div className="relative">
