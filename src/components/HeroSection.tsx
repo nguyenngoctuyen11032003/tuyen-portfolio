@@ -4,6 +4,107 @@ import { Mail, ArrowRight } from 'lucide-react';
 import { useLang } from '../context/LangContext';
 import { WordsPullUp } from './ui/WordsPullUp';
 import { PillButton } from './ui/PillButton';
+import avatarUrl from '../assets/avatar.jpg';
+
+const SPOTLIGHT_RADIUS = 220;
+
+function SpotlightReveal({
+  containerRef,
+  imageUrl,
+}: {
+  containerRef: React.RefObject<HTMLElement | null>;
+  imageUrl: string;
+}) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const revealRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    const canvas = canvasRef.current;
+    const reveal = revealRef.current;
+    const ctx = canvas?.getContext('2d');
+    if (!container || !canvas || !reveal || !ctx) return;
+
+    let width = (canvas.width = container.offsetWidth);
+    let height = (canvas.height = container.offsetHeight);
+
+    const mouse = { x: -9999, y: -9999 };
+    const smooth = { x: -9999, y: -9999 };
+    let raf = 0;
+
+    function handleMouseMove(e: MouseEvent) {
+      const rect = container!.getBoundingClientRect();
+      mouse.x = e.clientX - rect.left;
+      mouse.y = e.clientY - rect.top;
+    }
+
+    function handleMouseLeave() {
+      mouse.x = -9999;
+      mouse.y = -9999;
+    }
+
+    function handleResize() {
+      width = canvas!.width = container!.offsetWidth;
+      height = canvas!.height = container!.offsetHeight;
+    }
+
+    function render() {
+      smooth.x += (mouse.x - smooth.x) * 0.1;
+      smooth.y += (mouse.y - smooth.y) * 0.1;
+
+      ctx!.clearRect(0, 0, width, height);
+
+      const gradient = ctx!.createRadialGradient(
+        smooth.x,
+        smooth.y,
+        0,
+        smooth.x,
+        smooth.y,
+        SPOTLIGHT_RADIUS
+      );
+      gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
+      gradient.addColorStop(0.4, 'rgba(255, 255, 255, 1)');
+      gradient.addColorStop(0.6, 'rgba(255, 255, 255, 0.75)');
+      gradient.addColorStop(0.75, 'rgba(255, 255, 255, 0.4)');
+      gradient.addColorStop(0.88, 'rgba(255, 255, 255, 0.12)');
+      gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+
+      ctx!.fillStyle = gradient;
+      ctx!.beginPath();
+      ctx!.arc(smooth.x, smooth.y, SPOTLIGHT_RADIUS, 0, Math.PI * 2);
+      ctx!.fill();
+
+      const maskUrl = `url(${canvas!.toDataURL()})`;
+      reveal!.style.maskImage = maskUrl;
+      reveal!.style.setProperty('-webkit-mask-image', maskUrl);
+
+      raf = requestAnimationFrame(render);
+    }
+    render();
+
+    window.addEventListener('mousemove', handleMouseMove);
+    container.addEventListener('mouseleave', handleMouseLeave);
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener('mousemove', handleMouseMove);
+      container.removeEventListener('mouseleave', handleMouseLeave);
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [containerRef, imageUrl]);
+
+  return (
+    <div
+      ref={revealRef}
+      data-testid="spotlight-reveal"
+      className="absolute inset-0 z-[5] bg-center bg-cover bg-no-repeat pointer-events-none"
+      style={{ backgroundImage: `url(${imageUrl})`, maskSize: '100% 100%', WebkitMaskSize: '100% 100%' }}
+    >
+      <canvas ref={canvasRef} className="hidden" aria-hidden="true" />
+    </div>
+  );
+}
 
 export function splitAccent(headline: string, accent: string): [string, string, string] {
   const idx = headline.indexOf(accent);
@@ -80,6 +181,7 @@ function useParticleAurora(canvasRef: React.RefObject<HTMLCanvasElement | null>)
 
 export function HeroSection() {
   const { t } = useLang();
+  const sectionRef = useRef<HTMLElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const layerRef = useRef<HTMLDivElement>(null);
 
@@ -104,10 +206,16 @@ export function HeroSection() {
   const [before, accent, after] = splitAccent(t.hero.headline, t.hero.accent);
 
   return (
-    <section id="hero" className="relative min-h-screen flex flex-col overflow-hidden bg-black">
+    <section
+      id="hero"
+      ref={sectionRef}
+      className="relative min-h-screen flex flex-col overflow-hidden bg-black"
+    >
       <div ref={layerRef} className="absolute inset-0 scale-110">
         <canvas ref={canvasRef} className="w-full h-full" />
       </div>
+
+      <SpotlightReveal containerRef={sectionRef} imageUrl={avatarUrl} />
 
       <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-6 py-20 text-center gap-8">
         <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-serif leading-tight max-w-4xl text-[#E1E0CC]">
