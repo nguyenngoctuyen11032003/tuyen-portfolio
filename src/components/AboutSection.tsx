@@ -1,6 +1,6 @@
 import { useLang } from '../context/LangContext';
 import { WordsPullUp } from './ui/WordsPullUp';
-import avatarUrl from '../assets/avatar-placeholder.svg';
+import avatarUrl from '../assets/avatar.jpg';
 
 export function AboutSection() {
   const { t } = useLang();
