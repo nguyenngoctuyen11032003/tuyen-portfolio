@@ -64,3 +64,7 @@ npm run lint      # run Oxlint
 - To replace the portrait, swap `src/assets/avatar.jpg`. It is used in both the Hero and About sections.
 - Fonts are loaded from Google Fonts.
 - No deployment configuration is included. The build output in `dist/` is static and can be served by any static host.
+
+## Author
+
+Nguyễn Ngọc Tuyền ([@nguyenngoctuyen11032003](https://github.com/nguyenngoctuyen11032003))
