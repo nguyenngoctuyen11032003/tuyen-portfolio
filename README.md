@@ -1,32 +1,66 @@
-# React + TypeScript + Vite
+# Tuyen Portfolio
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Personal portfolio website of Nguyễn Ngọc Tuyền, a single-page static site built with React, TypeScript and Vite.
 
-Currently, two official plugins are available:
+## Overview
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+A front-end-only, single-page CV/portfolio. It has no backend, CMS or form submission. All text lives in one typed content file and is available in Vietnamese (the default) and English, switchable from the navbar. The visual style uses a black background, cream accent color, "liquid glass" pill buttons and cards, and Instrument Serif / Barlow typography.
 
-## React Compiler
+## Sections and features
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **Navbar**: anchor links to each section, a contact button, a language toggle (VI / EN) and a mobile menu.
+- **Hero**: headline with a word-by-word pull-up animation, a canvas particle/aurora background with GSAP mouse parallax, a cursor spotlight that reveals the portrait photo, and CTAs to Projects and Contact.
+- **About**: short bio, portrait with an animated glow border, and education details.
+- **Experience**: timeline of work history, animated on scroll.
+- **Skills**: skill groups with Lucide icons, shown on tilt cards.
+- **Projects**: selected projects with year, role and scope, shown on tilt cards.
+- **Contact**: email (`mailto:` link) and location.
 
-## Expanding the Oxlint configuration
+Animations use framer-motion (scroll-in reveals, tilt cards, buttons) and GSAP (hero parallax).
 
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
+## Tech stack
 
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+- React 19, TypeScript
+- Vite
+- Tailwind CSS 3 (with PostCSS and Autoprefixer)
+- framer-motion, GSAP
+- lucide-react (icons)
+- Vitest, Testing Library, jsdom (tests)
+- Oxlint (linting)
+
+## Project structure
+
+```
+src/
+  App.tsx              Page layout: Navbar plus the six sections
+  components/          Section components (Hero, About, Experience, Skills, Projects, Contact, Navbar)
+  components/ui/       Shared UI: PillButton, TiltCard, WordsPullUp, LiquidGlassCard, LangToggle
+  context/LangContext  Language state (vi / en) and useLang() hook
+  data/content.ts      All site text in Vietnamese and English
+  assets/avatar.jpg    Portrait photo
+  index.css            Tailwind layers, liquid-glass and glow styles
+public/favicon.svg
+docs/superpowers/      Design spec and implementation plan
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+Most components have a matching `*.test.tsx` file next to them.
+
+## Getting started
+
+Requires Node.js and npm.
+
+```bash
+npm install       # install dependencies
+npm run dev       # start the Vite dev server
+npm run build     # type-check (tsc -b) and build to dist/
+npm run preview   # serve the production build locally
+npm test          # run the Vitest suite once
+npm run lint      # run Oxlint
+```
+
+## Notes
+
+- To change any text, edit `src/data/content.ts`. Both languages share the same `Content` type, so a missing key in either language is a type error.
+- To replace the portrait, swap `src/assets/avatar.jpg`. It is used in both the Hero and About sections.
+- Fonts are loaded from Google Fonts.
+- No deployment configuration is included. The build output in `dist/` is static and can be served by any static host.
