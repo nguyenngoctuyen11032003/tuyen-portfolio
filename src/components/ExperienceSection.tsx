@@ -20,7 +20,7 @@ export function ExperienceSection() {
 
           {t.experience.items.map((item, i) => (
             <motion.div
-              key={item.org}
+              key={item.period + item.org}
               className="relative pb-12 last:pb-0"
               initial={{ opacity: 0, x: -20 }}
               animate={isInView ? { opacity: 1, x: 0 } : {}}

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { LangProvider } from '../context/LangContext';
+import { content } from '../data/content';
 import { ExperienceSection } from './ExperienceSection';
 
 describe('ExperienceSection', () => {
@@ -13,5 +14,17 @@ describe('ExperienceSection', () => {
     const orgs = screen.getAllByText(/Khang Minh|Học Mãi|An ninh mạng Quốc tế ICS/);
     expect(orgs).toHaveLength(3);
     expect(screen.getByText(/Khang Minh/)).toBeInTheDocument();
+  });
+
+  it('renders ICS period and achievements', () => {
+    render(
+      <LangProvider>
+        <ExperienceSection />
+      </LangProvider>
+    );
+    expect(screen.getByText('07/2025 – nay')).toBeInTheDocument();
+    const item = content.vi.experience.items[0];
+    expect(item.achievements?.length).toBeGreaterThan(0);
+    expect(screen.getByText(item.achievements![0])).toBeInTheDocument();
   });
 });

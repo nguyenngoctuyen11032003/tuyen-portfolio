@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { LangProvider } from '../context/LangContext';
+import { links } from '../data/content';
 import { HeroSection, splitAccent } from './HeroSection';
 
 describe('splitAccent', () => {
@@ -24,7 +25,22 @@ describe('HeroSection', () => {
         <HeroSection />
       </LangProvider>
     );
-    expect(screen.getByText(/Nhân viên kỹ thuật tại/)).toBeInTheDocument();
+    expect(screen.getByText(/Kỹ sư CNTT · Lập trình viên Full-Stack tại/)).toBeInTheDocument();
     expect(screen.getByText('Xem dự án')).toBeInTheDocument();
+  });
+
+  it('renders CV download and GitHub links', () => {
+    render(
+      <LangProvider>
+        <HeroSection />
+      </LangProvider>
+    );
+    const cv = screen.getByRole('link', { name: /Tải CV/ });
+    expect(cv).toHaveAttribute('href', '/cv.pdf');
+    expect(cv).toHaveAttribute('download');
+    const gh = screen.getByRole('link', { name: /GitHub/ });
+    expect(gh).toHaveAttribute('href', links.github);
+    expect(gh).toHaveAttribute('target', '_blank');
+    expect(gh.getAttribute('rel')).toContain('noopener');
   });
 });

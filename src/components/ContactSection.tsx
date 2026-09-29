@@ -1,7 +1,9 @@
-import { Mail, MapPin, ArrowUp } from 'lucide-react';
+import { Mail, MapPin, ArrowUp, ArrowUpRight } from 'lucide-react';
 import { useLang } from '../context/LangContext';
+import { links } from '../data/content';
 import { WordsPullUp } from './ui/WordsPullUp';
 import { PillButton } from './ui/PillButton';
+import { TechIcon } from './ui/techIcons';
 
 export function ContactSection() {
   const { t } = useLang();
@@ -22,16 +24,34 @@ export function ContactSection() {
           {t.contact.ctaLabel}
         </PillButton>
 
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 text-white/50 text-sm">
+        <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3 text-white/50 text-sm">
           <a href={`mailto:${t.contact.email}`} className="flex items-center gap-2 hover:text-white/80">
             <Mail size={14} /> {t.contact.email}
           </a>
           <span className="flex items-center gap-2">
             <MapPin size={14} /> {t.contact.location}
           </span>
+          <a
+            href={links.github}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={`${t.contact.githubLabel} (${t.a11y.openInNewTab})`}
+            className="flex items-center gap-1.5 hover:text-white/80"
+          >
+            {t.contact.githubLabel} <TechIcon name="GitHub" size={14} />
+          </a>
+          <a
+            href={links.linkedin}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={`${t.contact.linkedinLabel} (${t.a11y.openInNewTab})`}
+            className="flex items-center gap-1.5 hover:text-white/80"
+          >
+            {t.contact.linkedinLabel} <ArrowUpRight size={14} />
+          </a>
         </div>
 
-        <div className="flex items-center justify-center gap-6 mt-16 pt-8 border-t border-white/10">
+        <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3 mt-16 pt-8 border-t border-white/10">
           <p className="text-white/20 text-xs">© {new Date().getFullYear()} Nguyễn Ngọc Tuyền</p>
           <a
             href="#hero"

@@ -36,6 +36,13 @@ export function AboutSection() {
               {t.about.educationDegree} · {t.about.educationDates}
             </p>
           </div>
+
+          <div className="border-t border-white/10 pt-6 mt-6">
+            <p className="text-white/40 text-xs tracking-widest uppercase mb-2">
+              {t.about.languagesLabel}
+            </p>
+            <p className="text-white/60 text-sm">{t.about.languages}</p>
+          </div>
         </div>
       </div>
     </section>

@@ -28,6 +28,8 @@ export function WordsPullUp({
 
   return (
     <span ref={ref} className={`inline-flex flex-wrap ${className}`}>
+      <span className="sr-only">{text}</span>
+      <span aria-hidden="true" className="contents">
       {words.map((word, i) => (
         <span key={`${word}-${i}`} className="overflow-hidden inline-block mr-[0.25em] pb-1">
           <motion.span
@@ -40,6 +42,7 @@ export function WordsPullUp({
           </motion.span>
         </span>
       ))}
+      </span>
     </span>
   );
 }
