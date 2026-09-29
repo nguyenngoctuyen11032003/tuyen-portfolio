@@ -6,8 +6,8 @@ export function AboutSection() {
   const { t } = useLang();
 
   return (
-    <section id="about" className="bg-black py-24 md:py-32 px-6 noise-overlay">
-      <div className="max-w-5xl mx-auto bg-[#101010] rounded-3xl p-8 md:p-14 flex flex-col md:flex-row gap-10 md:gap-16 items-center">
+    <section id="about" aria-labelledby="about-heading" className="bg-black py-24 md:py-32 px-6 noise-overlay">
+      <div className="surface-card max-w-5xl mx-auto p-8 md:p-14 flex flex-col md:flex-row gap-10 md:gap-16 items-center">
         <div className="avatar-glow rounded-3xl w-40 h-40 md:w-56 md:h-56 flex-shrink-0">
           <div className="liquid-glass rounded-3xl overflow-hidden w-full h-full">
             <img src={avatarUrl} alt="Nguyễn Ngọc Tuyền" className="w-full h-full object-cover" />
@@ -16,7 +16,7 @@ export function AboutSection() {
 
         <div className="flex-1 text-left">
           <p className="text-white/40 text-xs tracking-widest uppercase mb-4">{t.about.label}</p>
-          <h2 className="text-3xl md:text-5xl font-serif text-primary mb-6 leading-tight">
+          <h2 id="about-heading" className="text-3xl md:text-5xl font-serif text-ink mb-6 leading-tight">
             <WordsPullUp text={t.about.heading} />
           </h2>
           <p className="text-white/70 text-sm md:text-base leading-relaxed mb-8">
@@ -29,7 +29,7 @@ export function AboutSection() {
             <p className="text-white/40 text-xs tracking-widest uppercase mb-2">
               {t.about.educationLabel}
             </p>
-            <p className="text-primary text-sm md:text-base font-medium">
+            <p className="text-ink text-sm md:text-base font-medium">
               {t.about.educationSchool}
             </p>
             <p className="text-white/60 text-sm">

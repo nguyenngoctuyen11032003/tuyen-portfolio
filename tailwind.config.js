@@ -5,6 +5,7 @@ export default {
     extend: {
       colors: {
         primary: '#34D399',
+        ink: '#F4F1EA',
       },
       fontFamily: {
         serif: ['"Instrument Serif"', 'serif'],
@@ -14,3 +15,4 @@ export default {
   },
   plugins: [],
 };
+

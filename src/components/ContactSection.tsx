@@ -1,4 +1,4 @@
-import { Mail, MapPin } from 'lucide-react';
+import { Mail, MapPin, ArrowUp } from 'lucide-react';
 import { useLang } from '../context/LangContext';
 import { WordsPullUp } from './ui/WordsPullUp';
 import { PillButton } from './ui/PillButton';
@@ -7,9 +7,9 @@ export function ContactSection() {
   const { t } = useLang();
 
   return (
-    <section id="contact" className="bg-black pt-24 pb-16 px-6 noise-overlay">
+    <section id="contact" aria-labelledby="contact-heading" className="bg-black pt-24 pb-10 px-6 noise-overlay">
       <div className="max-w-3xl mx-auto text-center">
-        <h2 className="text-4xl md:text-6xl font-serif italic text-primary mb-10 leading-tight">
+        <h2 id="contact-heading" className="text-4xl md:text-6xl font-serif italic text-primary mb-10 leading-tight">
           <WordsPullUp text={t.contact.heading} />
         </h2>
 
@@ -31,7 +31,16 @@ export function ContactSection() {
           </span>
         </div>
 
-        <p className="text-white/20 text-xs mt-16">© {new Date().getFullYear()} Nguyễn Ngọc Tuyền</p>
+        <div className="flex items-center justify-center gap-6 mt-16 pt-8 border-t border-white/10">
+          <p className="text-white/20 text-xs">© {new Date().getFullYear()} Nguyễn Ngọc Tuyền</p>
+          <a
+            href="#hero"
+            className="liquid-glass rounded-full p-2.5 text-white/60 hover:text-white transition-colors"
+            aria-label={t.a11y.backToTop}
+          >
+            <ArrowUp size={16} />
+          </a>
+        </div>
       </div>
     </section>
   );

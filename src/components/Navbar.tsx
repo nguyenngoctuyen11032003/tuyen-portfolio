@@ -7,7 +7,8 @@ import { PillButton } from './ui/PillButton';
 export function Navbar() {
   const { t } = useLang();
   const [open, setOpen] = useState(false);
-  const [activeHref, setActiveHref] = useState(t.nav.links[0]?.href ?? '');
+  const [activeHref, setActiveHref] = useState('');
+  const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
     const sections = t.nav.links
@@ -31,10 +32,23 @@ export function Navbar() {
     return () => observer.disconnect();
   }, [t.nav.links]);
 
+  useEffect(() => {
+    function handleScroll() {
+      setScrolled(window.scrollY > 24);
+    }
+    handleScroll();
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   return (
     <nav className="fixed top-5 left-1/2 -translate-x-1/2 z-50 w-[95%] max-w-3xl">
-      <div className="liquid-glass rounded-full px-4 py-2.5 md:px-6 flex items-center justify-between">
-        <span className="font-serif italic text-xl text-primary">NNT</span>
+      <div
+        className={`liquid-glass rounded-full px-4 py-2.5 md:px-6 flex items-center justify-between transition-colors duration-300 ${
+          scrolled ? 'bg-black/70' : ''
+        }`}
+      >
+        <span className="font-serif italic text-2xl font-semibold tracking-tight text-primary">NNT</span>
 
         <div className="hidden md:flex items-center gap-6">
           {t.nav.links.map((link) => (
@@ -69,7 +83,7 @@ export function Navbar() {
       </div>
 
       {open && (
-        <div className="liquid-glass mt-2 rounded-2xl px-4 py-4 flex flex-col gap-3 md:hidden">
+        <div className="liquid-glass-strong bg-black/90 mt-2 rounded-2xl px-4 py-4 flex flex-col gap-3 md:hidden">
           {t.nav.links.map((link) => (
             <a
               key={link.href}

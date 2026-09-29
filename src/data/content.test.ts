@@ -32,11 +32,15 @@ describe('content', () => {
       toggleMenu: 'Mở/đóng menu',
       toggleLanguage: 'Chuyển ngôn ngữ',
       email: 'Email',
+      scrollDown: 'Cuộn xuống',
+      backToTop: 'Lên đầu trang',
     });
     expect(content.en.a11y).toEqual({
       toggleMenu: 'Toggle menu',
       toggleLanguage: 'Toggle language',
       email: 'Email',
+      scrollDown: 'Scroll down',
+      backToTop: 'Back to top',
     });
   });
 });

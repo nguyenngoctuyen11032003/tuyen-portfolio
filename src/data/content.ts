@@ -5,6 +5,8 @@ export interface ExperienceItem {
   role: string;
   org: string;
   focus: string;
+  achievements?: string[];
+  tags?: string[];
 }
 
 export interface ProjectItem {
@@ -12,6 +14,8 @@ export interface ProjectItem {
   years: string;
   role: string;
   scope: string;
+  description?: string;
+  tags?: string[];
 }
 
 export interface SkillGroup {
@@ -31,6 +35,8 @@ export interface Content {
     subheading: string;
     ctaProjects: string;
     ctaContact: string;
+    badge: string;
+    stats: { value: string; label: string }[];
   };
   about: {
     label: string;
@@ -65,6 +71,8 @@ export interface Content {
     toggleMenu: string;
     toggleLanguage: string;
     email: string;
+    scrollDown: string;
+    backToTop: string;
   };
 }
 
@@ -76,7 +84,6 @@ export const content: Record<Lang, Content> = {
         { label: 'Kinh nghiệm', href: '#experience' },
         { label: 'Kỹ năng', href: '#skills' },
         { label: 'Dự án', href: '#projects' },
-        { label: 'Liên hệ', href: '#contact' },
       ],
       contactCta: 'Liên hệ',
     },
@@ -87,6 +94,12 @@ export const content: Record<Lang, Content> = {
         'Nhân viên kỹ thuật tại Công ty Cổ phần An ninh mạng Quốc tế ICS · Hà Nội',
       ctaProjects: 'Xem dự án',
       ctaContact: 'Liên hệ',
+      badge: 'Đang làm tại ICS',
+      stats: [
+        { value: '3+', label: 'năm kinh nghiệm' },
+        { value: '6', label: 'dự án đã tham gia' },
+        { value: '3', label: 'công ty đã làm việc' },
+      ],
     },
     about: {
       label: 'Về tôi',
@@ -104,10 +117,10 @@ export const content: Record<Lang, Content> = {
       heading: 'Hành trình làm việc',
       items: [
         {
-          period: '03/2023 – 06/2024',
-          role: 'Nhân viên',
-          org: 'Công ty TNHH SX&XNK Khang Minh',
-          focus: 'Công nghệ thông tin & xúc tiến thương mại',
+          period: '09/2025 – nay',
+          role: 'Nhân viên kỹ thuật',
+          org: 'Công ty CP An ninh mạng Quốc tế ICS',
+          focus: 'Phát triển phần mềm',
         },
         {
           period: '09/2024 – 02/2025',
@@ -116,10 +129,10 @@ export const content: Record<Lang, Content> = {
           focus: 'Phát triển phần mềm',
         },
         {
-          period: '09/2025 – nay',
-          role: 'Nhân viên kỹ thuật',
-          org: 'Công ty CP An ninh mạng Quốc tế ICS',
-          focus: 'Phát triển phần mềm',
+          period: '03/2023 – 06/2024',
+          role: 'Nhân viên',
+          org: 'Công ty TNHH SX&XNK Khang Minh',
+          focus: 'Công nghệ thông tin & xúc tiến thương mại',
         },
       ],
     },
@@ -151,10 +164,10 @@ export const content: Record<Lang, Content> = {
     projects: {
       heading: 'Dự án tiêu biểu',
       items: [
-        { title: 'Hệ thống quản trị khách sạn ERP', years: '2024–2025', role: 'Full-Stack Developer', scope: 'Trường học' },
+        { title: 'Hệ thống quản trị khách sạn ERP', years: '2024–2025', role: 'Full-Stack Developer', scope: 'Doanh nghiệp' },
         { title: 'Hệ thống quản lý Lớp học và giáo viên', years: '2025', role: 'Full-Stack Developer', scope: 'Doanh nghiệp' },
         { title: 'Hệ thống HRM quản lý nhân sự cho doanh nghiệp', years: '2025–2026', role: 'Quản lý dự án', scope: 'Doanh nghiệp' },
-        { title: 'Nền tảng đào tạo và giáo dục e-learning', years: '2025–2026', role: 'Quản lý dự án', scope: 'Doanh nghiệp' },
+        { title: 'Nền tảng đào tạo và giáo dục e‑learning', years: '2025–2026', role: 'Quản lý dự án', scope: 'Doanh nghiệp' },
         { title: 'Hệ thống CRM cho doanh nghiệp', years: '2025–2026', role: 'Phát triển phần mềm', scope: 'Doanh nghiệp' },
         { title: 'Số hoá di tích cho xã phường', years: '2025–2026', role: 'Full-Stack Developer', scope: 'Nhà nước' },
       ],
@@ -169,6 +182,8 @@ export const content: Record<Lang, Content> = {
       toggleMenu: 'Mở/đóng menu',
       toggleLanguage: 'Chuyển ngôn ngữ',
       email: 'Email',
+      scrollDown: 'Cuộn xuống',
+      backToTop: 'Lên đầu trang',
     },
   },
   en: {
@@ -178,7 +193,6 @@ export const content: Record<Lang, Content> = {
         { label: 'Experience', href: '#experience' },
         { label: 'Skills', href: '#skills' },
         { label: 'Projects', href: '#projects' },
-        { label: 'Contact', href: '#contact' },
       ],
       contactCta: 'Contact',
     },
@@ -188,6 +202,12 @@ export const content: Record<Lang, Content> = {
       subheading: 'Software Engineer at ICS International Cybersecurity JSC · Hanoi',
       ctaProjects: 'View projects',
       ctaContact: 'Contact',
+      badge: 'Currently at ICS',
+      stats: [
+        { value: '3+', label: 'years of experience' },
+        { value: '6', label: 'projects shipped' },
+        { value: '3', label: 'companies worked at' },
+      ],
     },
     about: {
       label: 'About',
@@ -205,10 +225,10 @@ export const content: Record<Lang, Content> = {
       heading: 'Work experience',
       items: [
         {
-          period: '03/2023 – 06/2024',
-          role: 'Staff',
-          org: 'Khang Minh Import-Export Manufacturing Co., Ltd',
-          focus: 'IT & trade promotion',
+          period: '09/2025 – present',
+          role: 'Technical Staff',
+          org: 'ICS International Cybersecurity JSC',
+          focus: 'Software development',
         },
         {
           period: '09/2024 – 02/2025',
@@ -217,10 +237,10 @@ export const content: Record<Lang, Content> = {
           focus: 'Software development',
         },
         {
-          period: '09/2025 – present',
-          role: 'Technical Staff',
-          org: 'ICS International Cybersecurity JSC',
-          focus: 'Software development',
+          period: '03/2023 – 06/2024',
+          role: 'Staff',
+          org: 'Khang Minh Import-Export Manufacturing Co., Ltd',
+          focus: 'IT & trade promotion',
         },
       ],
     },
@@ -252,10 +272,10 @@ export const content: Record<Lang, Content> = {
     projects: {
       heading: 'Featured projects',
       items: [
-        { title: 'Hotel Management ERP System', years: '2024–2025', role: 'Full-Stack Developer', scope: 'School' },
+        { title: 'Hotel Management ERP System', years: '2024–2025', role: 'Full-Stack Developer', scope: 'Enterprise' },
         { title: 'Classroom & Teacher Management System', years: '2025', role: 'Full-Stack Developer', scope: 'Enterprise' },
         { title: 'HRM System for Enterprise', years: '2025–2026', role: 'Project Manager', scope: 'Enterprise' },
-        { title: 'E-learning Education Platform', years: '2025–2026', role: 'Project Manager', scope: 'Enterprise' },
+        { title: 'E‑learning Education Platform', years: '2025–2026', role: 'Project Manager', scope: 'Enterprise' },
         { title: 'Enterprise CRM System', years: '2025–2026', role: 'Software Developer', scope: 'Enterprise' },
         { title: 'Heritage Site Digitization System', years: '2025–2026', role: 'Full-Stack Developer', scope: 'Government' },
       ],
@@ -270,6 +290,8 @@ export const content: Record<Lang, Content> = {
       toggleMenu: 'Toggle menu',
       toggleLanguage: 'Toggle language',
       email: 'Email',
+      scrollDown: 'Scroll down',
+      backToTop: 'Back to top',
     },
   },
 };

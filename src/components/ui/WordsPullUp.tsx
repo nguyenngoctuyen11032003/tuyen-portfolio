@@ -6,6 +6,8 @@ interface WordsPullUpProps {
   className?: string;
   wordClassName?: string;
   staggerDelay?: number;
+  /** Skip the scroll-triggered reveal and animate immediately on mount. Use for above-the-fold text. */
+  eager?: boolean;
 }
 
 export function splitWords(text: string): string[] {
@@ -17,9 +19,11 @@ export function WordsPullUp({
   className = '',
   wordClassName = '',
   staggerDelay = 0.08,
+  eager = false,
 }: WordsPullUpProps) {
   const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: '-100px' });
+  const scrollInView = useInView(ref, { once: true, margin: '-100px' });
+  const isInView = eager || scrollInView;
   const words = splitWords(text);
 
   return (
