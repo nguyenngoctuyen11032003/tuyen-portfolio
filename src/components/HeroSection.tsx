@@ -1,9 +1,11 @@
 import { useEffect, useRef } from 'react';
 import gsap from 'gsap';
-import { ArrowRight, ChevronDown } from 'lucide-react';
+import { ArrowRight, ChevronDown, Download } from 'lucide-react';
 import { useLang } from '../context/LangContext';
+import { links } from '../data/content';
 import { WordsPullUp } from './ui/WordsPullUp';
 import { PillButton } from './ui/PillButton';
+import { TechIcon } from './ui/techIcons';
 
 export function splitAccent(headline: string, accent: string): [string, string, string] {
   const idx = headline.indexOf(accent);
@@ -12,6 +14,10 @@ export function splitAccent(headline: string, accent: string): [string, string, 
 }
 
 const TRAILING_PUNCTUATION = /^[.,!?;:]+$/;
+
+function prefersReducedMotion(): boolean {
+  return typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
 
 function useParticleAurora(canvasRef: React.RefObject<HTMLCanvasElement | null>) {
   useEffect(() => {
@@ -22,7 +28,7 @@ function useParticleAurora(canvasRef: React.RefObject<HTMLCanvasElement | null>)
     let width = (canvas.width = canvas.offsetWidth);
     let height = (canvas.height = canvas.offsetHeight);
 
-    const particles = Array.from({ length: 110 }, () => ({
+    const particles = Array.from({ length: 60 }, () => ({
       x: Math.random() * width,
       y: Math.random() * height,
       r: Math.random() * 1.5 + 0.5,
@@ -31,7 +37,7 @@ function useParticleAurora(canvasRef: React.RefObject<HTMLCanvasElement | null>)
     }));
 
     let raf = 0;
-    function render() {
+    function render(loop = true) {
       if (!ctx) return;
       ctx.clearRect(0, 0, width, height);
 
@@ -62,14 +68,16 @@ function useParticleAurora(canvasRef: React.RefObject<HTMLCanvasElement | null>)
         ctx.fill();
       });
 
-      raf = requestAnimationFrame(render);
+      if (loop) raf = requestAnimationFrame(() => render(true));
     }
-    render();
+    const reduced = prefersReducedMotion();
+    render(!reduced);
 
     function handleResize() {
       if (!canvas) return;
       width = canvas.width = canvas.offsetWidth;
       height = canvas.height = canvas.offsetHeight;
+      if (reduced) render(false);
     }
     window.addEventListener('resize', handleResize);
 
@@ -89,7 +97,7 @@ export function HeroSection() {
 
   useEffect(() => {
     const layer = layerRef.current;
-    if (!layer) return;
+    if (!layer || prefersReducedMotion()) return;
 
     function handleMouseMove(e: MouseEvent) {
       const cx = window.innerWidth / 2;
@@ -115,13 +123,13 @@ export function HeroSection() {
         <canvas ref={canvasRef} className="w-full h-full" />
       </div>
 
-      <div className="relative z-10 flex-1 flex flex-col justify-center px-6 md:px-16 lg:px-24 py-32 gap-8 max-w-6xl">
+      <div className="relative z-10 flex-1 flex flex-col justify-center min-w-0 w-full px-6 md:px-16 lg:px-24 py-32 gap-8 max-w-6xl">
         <span className="liquid-glass inline-flex w-fit items-center gap-2 rounded-full px-4 py-1.5 text-xs font-medium text-primary">
           <span className="w-1.5 h-1.5 rounded-full bg-primary" />
           {t.hero.badge}
         </span>
 
-        <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-serif leading-tight max-w-3xl text-ink">
+        <h1 className="min-w-0 max-w-full text-[clamp(2.25rem,5.5vw,4.5rem)] font-serif leading-[1.1] md:max-w-3xl text-ink">
           <WordsPullUp text={before} eager staggerDelay={0.05} />
           {accent && <WordsPullUp text={accent} wordClassName="italic text-primary" eager staggerDelay={0.05} />}
           {after &&
@@ -137,6 +145,26 @@ export function HeroSection() {
         <div className="flex flex-wrap items-center gap-4">
           <PillButton href="#projects" variant="solid">
             {t.hero.ctaProjects}
+          </PillButton>
+          <PillButton
+            href={links.cv}
+            download
+            variant="glass"
+            className="inline-flex items-center gap-2"
+          >
+            <Download size={16} />
+            {t.hero.ctaCv}
+          </PillButton>
+          <PillButton
+            href={links.github}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={`${t.hero.ctaGithub} (${t.a11y.openInNewTab})`}
+            variant="glass"
+            className="inline-flex items-center gap-2"
+          >
+            {t.hero.ctaGithub}
+            <TechIcon name="GitHub" size={16} />
           </PillButton>
           <PillButton href="#contact" variant="glass" className="inline-flex items-center gap-2">
             {t.hero.ctaContact}

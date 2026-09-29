@@ -8,6 +8,10 @@ interface PillButtonProps {
   onClick?: () => void;
   variant?: 'solid' | 'glass';
   className?: string;
+  target?: string;
+  rel?: string;
+  download?: boolean | string;
+  'aria-label'?: string;
 }
 
 const MAGNETIC_STRENGTH = 0.25;
@@ -28,6 +32,10 @@ export function PillButton({
   onClick,
   variant = 'glass',
   className = '',
+  target,
+  rel,
+  download,
+  'aria-label': ariaLabel,
 }: PillButtonProps) {
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const base =
@@ -52,14 +60,29 @@ export function PillButton({
 
   if (href) {
     return (
-      <motion.a href={href} onClick={onClick} className={classes} {...motionProps}>
+      <motion.a
+        href={href}
+        onClick={onClick}
+        className={classes}
+        target={target}
+        rel={rel ?? (target === '_blank' ? 'noopener noreferrer' : undefined)}
+        download={download}
+        aria-label={ariaLabel}
+        {...motionProps}
+      >
         {children}
       </motion.a>
     );
   }
 
   return (
-    <motion.button type="button" onClick={onClick} className={classes} {...motionProps}>
+    <motion.button
+      type="button"
+      onClick={onClick}
+      className={classes}
+      aria-label={ariaLabel}
+      {...motionProps}
+    >
       {children}
     </motion.button>
   );

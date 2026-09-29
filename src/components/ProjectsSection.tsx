@@ -6,6 +6,7 @@ import { WordsPullUp } from './ui/WordsPullUp';
 import { TiltCard } from './ui/TiltCard';
 import { SurfaceCard } from './ui/SurfaceCard';
 import { Modal } from './ui/Modal';
+import { TechTag } from './ui/TechTag';
 import type { ProjectItem } from '../data/content';
 
 const GRADIENT_POSITIONS = ['30% 20%', '80% 15%', '20% 80%', '85% 75%'];
@@ -23,9 +24,9 @@ export function ProjectsSection() {
           <WordsPullUp text={t.projects.heading} />
         </h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+        <ul className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 list-none p-0">
           {t.projects.items.map((project, i) => (
-            <motion.div
+            <motion.li
               key={project.title}
               className={i === 0 ? 'md:col-span-2' : ''}
               initial={{ opacity: 0, y: 40 }}
@@ -56,18 +57,30 @@ export function ProjectsSection() {
                         type="button"
                         onClick={() => setActiveProject(project)}
                         className="liquid-glass rounded-full p-2 flex-shrink-0 hover:scale-110 transition-transform"
-                        aria-label={`Xem chi tiết ${project.title}`}
+                        aria-label={`${t.projects.detailsLabel} ${project.title}`}
                       >
                         <ArrowUpRight size={16} className="text-white/80" />
                       </button>
                     </div>
                     <p className="text-white/50 text-sm mt-3">{project.years}</p>
+                    {project.description && (
+                      <p className="text-white/60 text-sm mt-3 line-clamp-2">{project.description}</p>
+                    )}
+                    {project.tags && project.tags.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 mt-4">
+                        {project.tags.slice(0, 5).map((tag) => (
+                          <TechTag key={tag} name={tag} />
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </SurfaceCard>
               </TiltCard>
-            </motion.div>
+            </motion.li>
           ))}
-        </div>
+        </ul>
+
+        <p className="text-white/50 text-sm text-center mt-10">{t.projects.also}</p>
       </div>
 
       <Modal
@@ -90,14 +103,21 @@ export function ProjectsSection() {
             {activeProject.tags && activeProject.tags.length > 0 && (
               <div className="flex flex-wrap gap-2">
                 {activeProject.tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="liquid-glass rounded-full px-3 py-1 text-xs text-white/70"
-                  >
-                    {tag}
-                  </span>
+                  <TechTag key={tag} name={tag} size="md" />
                 ))}
               </div>
+            )}
+            {activeProject.caseStudyUrl && (
+              <a
+                href={activeProject.caseStudyUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={`${t.projects.caseStudyLabel} — ${activeProject.title} (${t.a11y.openInNewTab})`}
+                className="liquid-glass rounded-full px-4 py-2 text-sm text-white/80 inline-flex items-center gap-1.5 mt-5 hover:scale-105 transition-transform"
+              >
+                {t.projects.caseStudyLabel}
+                <ArrowUpRight size={14} aria-hidden="true" />
+              </a>
             )}
           </>
         )}

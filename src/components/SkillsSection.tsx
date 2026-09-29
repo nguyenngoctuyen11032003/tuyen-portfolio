@@ -1,35 +1,12 @@
 import { useRef } from 'react';
+import type { CSSProperties } from 'react';
 import { motion, useInView } from 'framer-motion';
-import {
-  Code2,
-  ClipboardList,
-  ShieldCheck,
-  Languages,
-  Layout,
-  Server,
-  Database,
-  GitBranch,
-} from 'lucide-react';
+import { ShieldCheck } from 'lucide-react';
 import { useLang } from '../context/LangContext';
 import { WordsPullUp } from './ui/WordsPullUp';
-import { TiltCard } from './ui/TiltCard';
-import { SurfaceCard } from './ui/SurfaceCard';
-import type { SkillGroup } from '../data/content';
+import { TechIcon, hoverColor } from './ui/techIcons';
 
-const ICONS: Record<SkillGroup['icon'], typeof Code2> = {
-  code: Code2,
-  'clipboard-list': ClipboardList,
-  shield: ShieldCheck,
-  languages: Languages,
-};
-
-const TECH_CATEGORIES = [
-  { label: 'Frontend', icon: Layout },
-  { label: 'Backend', icon: Server },
-  { label: 'Database', icon: Database },
-  { label: 'DevOps', icon: GitBranch },
-  { label: 'Security', icon: ShieldCheck },
-];
+const EASE = [0.16, 1, 0.3, 1] as const;
 
 export function SkillsSection() {
   const { t } = useLang();
@@ -43,45 +20,59 @@ export function SkillsSection() {
           <WordsPullUp text={t.skills.heading} />
         </h2>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6">
-          {t.skills.groups.map((group, i) => {
-            const Icon = ICONS[group.icon];
-            return (
-              <motion.div
-                key={group.title}
-                className={i === 0 ? 'sm:col-span-2' : ''}
-                initial={{ opacity: 0, y: 30 }}
-                animate={isInView ? { opacity: 1, y: 0 } : {}}
-                transition={{ duration: 0.6, delay: i * 0.12, ease: [0.16, 1, 0.3, 1] }}
-              >
-                <TiltCard>
-                  <SurfaceCard className="p-6 md:p-8 h-full">
-                    <div className="liquid-glass rounded-full w-11 h-11 flex items-center justify-center mb-4">
-                      <Icon size={20} className="text-primary" />
-                    </div>
-                    <h3 className="text-ink text-lg font-medium mb-2">{group.title}</h3>
-                    <p className="text-white/50 text-sm leading-relaxed">{group.description}</p>
-                  </SurfaceCard>
-                </TiltCard>
-              </motion.div>
-            );
-          })}
-        </div>
-
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-          {TECH_CATEGORIES.map(({ label, icon: Icon }, i) => (
-            <motion.div
-              key={label}
-              className="surface-card flex flex-col items-center gap-2 py-5"
-              initial={{ opacity: 0, y: 20 }}
+        <p className="text-white/40 text-xs uppercase tracking-widest mb-4">{t.skills.coreLabel}</p>
+        <ul aria-label={t.skills.coreLabel} className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 md:gap-4 mb-14">
+          {t.skills.core.map((name, i) => (
+            <motion.li
+              key={name}
+              className="group surface-card flex flex-col items-center justify-center gap-3 px-2 py-6 text-center"
+              style={{ '--brand': hoverColor(name) } as CSSProperties}
+              initial={{ opacity: 0, y: 24 }}
+              whileHover={{ y: -4, transition: { duration: 0.2, delay: 0 } }}
               animate={isInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.5, delay: 0.4 + i * 0.08, ease: [0.16, 1, 0.3, 1] }}
+              transition={{ duration: 0.5, delay: i * 0.05, ease: EASE }}
             >
-              <Icon size={20} className="text-primary" />
-              <span className="text-white/60 text-xs">{label}</span>
-            </motion.div>
+              <TechIcon
+                name={name}
+                size={32}
+                className="text-white/60 transition-colors duration-300 group-hover:text-[var(--brand)]"
+              />
+              <span className="text-ink text-sm break-words max-w-full">{name}</span>
+            </motion.li>
           ))}
-        </div>
+        </ul>
+
+        <ul className="divide-y divide-white/5 mb-10">
+          {t.skills.categories.map((cat, i) => (
+            <motion.li
+              key={cat.label}
+              className="flex flex-col md:flex-row md:items-start gap-3 md:gap-6 py-4"
+              initial={{ opacity: 0, y: 16 }}
+              animate={isInView ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.5, delay: 0.3 + i * 0.06, ease: EASE }}
+            >
+              <h3 className="text-white/40 text-xs uppercase tracking-widest md:w-48 md:shrink-0 md:pt-2">
+                {cat.label}
+              </h3>
+              <ul className="flex flex-wrap gap-2">
+                {cat.items.map((item) => (
+                  <li
+                    key={item}
+                    className="liquid-glass rounded-full px-3 py-1.5 text-xs text-white/70 inline-flex items-center gap-1.5"
+                  >
+                    <TechIcon name={item} size={14} />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </motion.li>
+          ))}
+        </ul>
+
+        <p className="flex items-start gap-3 text-white/50 text-sm leading-relaxed max-w-2xl">
+          <ShieldCheck size={18} className="text-primary shrink-0 mt-0.5" aria-hidden="true" />
+          <span>{t.skills.note}</span>
+        </p>
       </div>
     </section>
   );

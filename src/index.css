@@ -6,6 +6,11 @@ html {
   scroll-behavior: smooth;
 }
 
+html,
+body {
+  overflow-x: clip;
+}
+
 body {
   background: #000000;
   font-family: 'Barlow', sans-serif;
@@ -74,6 +79,15 @@ button:focus-visible {
   }
   .avatar-glow::before {
     animation: none;
+  }
+  .animate-bounce {
+    animation: none !important;
+  }
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
 

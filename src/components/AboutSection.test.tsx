@@ -13,6 +13,7 @@ describe('AboutSection', () => {
     expect(screen.getByAltText('Nguyễn Ngọc Tuyền')).toBeInTheDocument();
     expect(screen.getByText('Trường Đại học Công Nghệ Đông Á')).toBeInTheDocument();
     expect(screen.getByText(/09\/2021 – 06\/2025/)).toBeInTheDocument();
+    expect(screen.getByText('Tiếng Anh: cơ bản — đọc được tài liệu kỹ thuật')).toBeInTheDocument();
   });
 
   it('renders the italic clause inside the intro paragraph', () => {
