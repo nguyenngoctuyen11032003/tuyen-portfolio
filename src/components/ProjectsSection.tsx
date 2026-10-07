@@ -18,6 +18,15 @@ export function bentoSpans(count: number): (7 | 5)[] {
   return Array.from({ length: count }, (_, i) => ([7, 5, 5, 7] as const)[i % 4]);
 }
 
+/** "2024 — 2026": the span of years across all projects. */
+export function yearSpan(items: ProjectItem[]): string {
+  const years = items.flatMap((p) => (p.years.match(/\d{4}/g) ?? []).map(Number));
+  if (years.length === 0) return '';
+  const min = Math.min(...years);
+  const max = Math.max(...years);
+  return min === max ? String(min) : `${min} — ${max}`;
+}
+
 /** Corner each bento card grows from while scrolling in: toward the gutter between the pair. */
 export function bentoOrigins(count: number): string[] {
   return Array.from({ length: count }, (_, i) => (i % 2 === 0 ? 'right bottom' : 'left bottom'));
@@ -280,7 +289,12 @@ export function ProjectsSection() {
           ))}
         </ul>
 
-        <p className="text-white/50 text-sm text-center mt-12">{t.projects.also}</p>
+        <div className="mt-14 pt-6 border-t border-white/10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 font-['Space_Mono',monospace] text-[10px] md:text-[11px] tracking-[0.2em] uppercase text-white/45">
+          <p>{t.projects.also}</p>
+          <p className="text-white/30">
+            {t.projects.items.length} {t.archive.projects} · {yearSpan(t.projects.items)}
+          </p>
+        </div>
       </div>
 
       <ProjectDetailModal project={open?.project ?? null} initialImage={open?.image ?? 0} onClose={() => setOpen(null)} />

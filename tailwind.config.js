@@ -8,7 +8,7 @@ export default {
         ink: '#F4F1EA',
       },
       fontFamily: {
-        serif: ['"Instrument Serif"', 'serif'],
+        serif: ['"Playfair Display"', '"Instrument Serif"', 'serif'],
         body: ['Barlow', 'sans-serif'],
       },
     },

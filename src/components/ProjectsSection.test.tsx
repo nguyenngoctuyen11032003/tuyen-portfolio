@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { LangProvider } from '../context/LangContext';
-import { ProjectsSection, bentoOrigins, bentoSpans } from './ProjectsSection';
+import { ProjectsSection, bentoOrigins, bentoSpans, yearSpan } from './ProjectsSection';
 import { content } from '../data/content';
 
 function setup() {
@@ -128,5 +128,17 @@ describe('bento layout', () => {
 
   it('grows each card from the gutter between the pair', () => {
     expect(bentoOrigins(4)).toEqual(['right bottom', 'left bottom', 'right bottom', 'left bottom']);
+  });
+});
+
+describe('yearSpan', () => {
+  it('spans the earliest to the latest project year', () => {
+    expect(
+      yearSpan([
+        { title: 'a', years: '2024–2025', role: '', scope: '' },
+        { title: 'b', years: '2026', role: '', scope: '' },
+      ]),
+    ).toBe('2024 — 2026');
+    expect(yearSpan([{ title: 'a', years: '2026', role: '', scope: '' }])).toBe('2026');
   });
 });

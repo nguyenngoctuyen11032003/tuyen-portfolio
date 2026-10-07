@@ -151,11 +151,19 @@ describe('content', () => {
     );
   });
 
-  it('lists the OCI certification', () => {
+  it('lists both OCI 2025 certifications with Oracle verification links', () => {
     for (const lang of ['vi', 'en'] as const) {
-      expect(content[lang].certifications.items.map((i) => i.name)).toContain(
-        'Oracle Cloud Infrastructure (OCI)',
-      );
+      const items = content[lang].certifications.items;
+      for (const name of [
+        'Oracle Cloud Infrastructure 2025 Certified Architect Associate',
+        'Oracle Cloud Infrastructure 2025 Certified Foundations Associate',
+      ]) {
+        const item = items.find((i) => i.name === name);
+        expect(item?.verifyUrl).toMatch(
+          /^https:\/\/catalog-education\.oracle\.com\/ords\/certview\/sharebadge\?id=[0-9A-F]{64}$/,
+        );
+        expect(item?.badge).toMatch(/^\/certs\/.+\.webp$/);
+      }
     }
   });
 

@@ -40,6 +40,19 @@ export interface ProjectItem {
   images?: ProjectImage[];
 }
 
+export interface CertificationItem {
+  name: string;
+  issuer?: string;
+  /** Short label shown in the list, e.g. "OCI 2025 · Architect Associate". */
+  short?: string;
+  issued?: string;
+  validUntil?: string;
+  verifyUrl?: string;
+  badge?: string;
+  summary?: string;
+  skills?: string[];
+}
+
 export interface Content {
   nav: {
     links: { label: string; href: string }[];
@@ -70,7 +83,15 @@ export interface Content {
     educationDates: string;
   };
   experience: {
+    eyebrow: string;
     heading: string;
+    /** Part of the heading set in italic serif. */
+    headingAccent: string;
+    intro: string;
+    currentLabel: string;
+    companiesLabel: string;
+    /** Duration units: [singular, plural] for years and months. */
+    units: { year: [string, string]; month: [string, string] };
     items: ExperienceItem[];
   };
   skills: {
@@ -110,8 +131,20 @@ export interface Content {
     listLink: string;
   };
   certifications: {
+    eyebrow: string;
     heading: string;
-    items: { name: string; issuer?: string }[];
+    /** Big statement split around the inline icon row: [before, after]. */
+    statement: [string, string];
+    tagline: string;
+    pills: string[];
+    topBar: string;
+    counterLabel: string;
+    issuedLabel: string;
+    validLabel: string;
+    skillsLabel: string;
+    verifyLabel: string;
+    footer: string;
+    items: CertificationItem[];
   };
   contact: {
     heading: string;
@@ -159,6 +192,28 @@ const CATEGORY_ITEMS = {
   api: ['REST API', 'JWT', 'Authentication', 'Authorization'],
   vcs: ['Git', 'GitHub'],
 };
+
+const OCI_VERIFY = 'https://catalog-education.oracle.com/ords/certview/sharebadge?id=';
+const OCI_FOUNDATIONS_URL = `${OCI_VERIFY}6C0481056659765AEBDF618C414528D51BEFF0EA24301F442262EAA98494389B`;
+const OCI_ARCHITECT_URL = `${OCI_VERIFY}E74E09EA617AE459CCAFDE696119A4E6A47EE66142145452C646A6F68858EE75`;
+
+// Skill statements as published on the Oracle verification pages.
+const OCI_ARCHITECT_SKILLS = [
+  'OCI Identity and Access Management (IAM)',
+  'Virtual Cloud Network & VCN connectivity',
+  'DNS and Traffic Management',
+  'Load Balancer & Network Command Center',
+  'Compute instances & autoscaling',
+  'Object Storage',
+  'Block Storage & File Storage',
+];
+const OCI_FOUNDATIONS_SKILLS = [
+  'Basic cloud concepts',
+  'Core OCI services: Compute, Storage, Networking, Database, AI, Observability',
+  'OCI security, identity & compliance',
+  'OCI billing & cost management',
+  'Governance & administration',
+];
 
 const ICS_TAGS = ['Next.js', 'React', 'NestJS', 'PostgreSQL', 'Redis', 'Docker', 'Git'];
 
@@ -221,7 +276,14 @@ export const content: Record<Lang, Content> = {
       educationDates: '09/2021 – 06/2025',
     },
     experience: {
+      eyebrow: 'Kinh nghiệm',
       heading: 'Hành trình làm việc',
+      headingAccent: 'làm việc',
+      intro:
+        'Từ xúc tiến thương mại đến kỹ sư full-stack tại một công ty an ninh mạng — mỗi chặng thêm một lớp kỹ năng mới.',
+      currentLabel: 'Hiện tại',
+      companiesLabel: 'chặng đường',
+      units: { year: ['năm', 'năm'], month: ['tháng', 'tháng'] },
       items: [
         {
           period: '07/2025 – nay',
@@ -492,10 +554,45 @@ export const content: Record<Lang, Content> = {
       listLink: 'Xem danh sách dự án',
     },
     certifications: {
+      eyebrow: 'Chứng chỉ',
       heading: 'Chứng chỉ',
+      statement: ['Kiến thức đám mây được', 'kiểm chứng bởi Oracle.'],
+      tagline: 'Không chỉ học — mà còn được kiểm chứng',
+      pills: ['Oracle Cloud', 'Đã xác minh', 'Còn hiệu lực'],
+      topBar: 'Xác minh trực tuyến tại trang của Oracle.',
+      counterLabel: 'Chứng chỉ',
+      issuedLabel: 'Cấp ngày',
+      validLabel: 'Hiệu lực đến',
+      skillsLabel: 'Kỹ năng được đánh giá',
+      verifyLabel: 'Xác minh trên Oracle',
+      footer: 'Xây hệ thống trên nền tảng đám mây',
       items: [
-        { name: 'Oracle Cloud Infrastructure (OCI)', issuer: 'Oracle' },
-        { name: 'Tin học văn phòng' },
+        {
+          name: 'Oracle Cloud Infrastructure 2025 Certified Architect Associate',
+          short: 'OCI 2025 · Architect Associate',
+          issuer: 'Oracle',
+          issued: '30/10/2025',
+          validUntil: '30/10/2027',
+          verifyUrl: OCI_ARCHITECT_URL,
+          badge: '/certs/oci-architect-2025.webp',
+          summary: 'Kiến thức nền tảng vững về thiết kế hạ tầng trên OCI: định danh và phân quyền, mạng, compute và lưu trữ.',
+          skills: OCI_ARCHITECT_SKILLS,
+        },
+        {
+          name: 'Oracle Cloud Infrastructure 2025 Certified Foundations Associate',
+          short: 'OCI 2025 · Foundations Associate',
+          issuer: 'Oracle',
+          issued: '27/10/2025',
+          validUntil: '27/10/2027',
+          verifyUrl: OCI_FOUNDATIONS_URL,
+          badge: '/certs/oci-foundations-2025.webp',
+          summary: 'Kiến thức nền tảng về các dịch vụ đám mây công cộng của Oracle Cloud Infrastructure.',
+          skills: OCI_FOUNDATIONS_SKILLS,
+        },
+        {
+          name: 'Tin học văn phòng',
+          short: 'Tin học văn phòng',
+        },
       ],
     },
     contact: {
@@ -558,7 +655,14 @@ export const content: Record<Lang, Content> = {
       educationDates: '09/2021 – 06/2025',
     },
     experience: {
+      eyebrow: 'Experience',
       heading: 'Work experience',
+      headingAccent: 'experience',
+      intro:
+        'From trade promotion to full-stack engineering at a cybersecurity company — each stop added a new layer of skill.',
+      currentLabel: 'Current',
+      companiesLabel: 'stops',
+      units: { year: ['yr', 'yrs'], month: ['mo', 'mos'] },
       items: [
         {
           period: '07/2025 – present',
@@ -829,10 +933,45 @@ export const content: Record<Lang, Content> = {
       listLink: 'See the project list',
     },
     certifications: {
+      eyebrow: 'Certifications',
       heading: 'Certifications',
+      statement: ['Cloud knowledge', 'verified by Oracle.'],
+      tagline: 'Not just learned — verified',
+      pills: ['Oracle Cloud', 'Verified', 'Active'],
+      topBar: 'Verifiable online on Oracle’s site.',
+      counterLabel: 'Certificate',
+      issuedLabel: 'Issued',
+      validLabel: 'Valid until',
+      skillsLabel: 'Skills assessed',
+      verifyLabel: 'Verify on Oracle',
+      footer: 'Building systems on the cloud',
       items: [
-        { name: 'Oracle Cloud Infrastructure (OCI)', issuer: 'Oracle' },
-        { name: 'Office Informatics' },
+        {
+          name: 'Oracle Cloud Infrastructure 2025 Certified Architect Associate',
+          short: 'OCI 2025 · Architect Associate',
+          issuer: 'Oracle',
+          issued: '30 Oct 2025',
+          validUntil: '30 Oct 2027',
+          verifyUrl: OCI_ARCHITECT_URL,
+          badge: '/certs/oci-architect-2025.webp',
+          summary: 'Strong foundational knowledge of architecting infrastructure on OCI: identity and access, networking, compute and storage.',
+          skills: OCI_ARCHITECT_SKILLS,
+        },
+        {
+          name: 'Oracle Cloud Infrastructure 2025 Certified Foundations Associate',
+          short: 'OCI 2025 · Foundations Associate',
+          issuer: 'Oracle',
+          issued: '27 Oct 2025',
+          validUntil: '27 Oct 2027',
+          verifyUrl: OCI_FOUNDATIONS_URL,
+          badge: '/certs/oci-foundations-2025.webp',
+          summary: 'Fundamental knowledge of the public cloud services provided by Oracle Cloud Infrastructure.',
+          skills: OCI_FOUNDATIONS_SKILLS,
+        },
+        {
+          name: 'Office Informatics',
+          short: 'Office Informatics',
+        },
       ],
     },
     contact: {
