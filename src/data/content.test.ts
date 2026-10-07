@@ -37,6 +37,16 @@ const ALLOWED = new Set([
   'Authentication',
   'Authorization',
   'JSP',
+  'Rust',
+  'Tauri',
+  'PDFium',
+  'QPDF',
+  'Tailwind CSS',
+  'PHP',
+  'Bootstrap',
+  'jQuery',
+  'Leaflet',
+  'OpenStreetMap',
 ]);
 
 describe('content', () => {
@@ -47,8 +57,8 @@ describe('content', () => {
     expect(content.vi.nav.links.length).toBe(content.en.nav.links.length);
   });
 
-  it('has exactly 6 projects matching the CV', () => {
-    expect(content.vi.projects.items).toHaveLength(6);
+  it('has exactly 9 featured projects', () => {
+    expect(content.vi.projects.items).toHaveLength(9);
   });
 
   it('has exactly 3 experience entries matching the CV', () => {

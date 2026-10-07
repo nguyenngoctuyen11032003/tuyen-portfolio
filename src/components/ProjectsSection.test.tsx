@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { LangProvider } from '../context/LangContext';
-import { ProjectsSection } from './ProjectsSection';
+import { ProjectsSection, computeWideCards } from './ProjectsSection';
 import { content } from '../data/content';
 
 function setup() {
@@ -13,11 +13,12 @@ function setup() {
 }
 
 describe('ProjectsSection', () => {
-  it('renders all 6 project cards', () => {
+  it('renders all 9 project cards', () => {
     setup();
     expect(screen.getByText('Hệ thống quản trị khách sạn ERP')).toBeInTheDocument();
     expect(screen.getByText('Số hoá di tích cho xã phường')).toBeInTheDocument();
-    expect(screen.getAllByText(/2025|2024/).length).toBeGreaterThanOrEqual(6);
+    expect(screen.getByText('FoFreeXit — Phần mềm chỉnh sửa PDF')).toBeInTheDocument();
+    expect(screen.getAllByText(/2026|2025|2024/).length).toBeGreaterThanOrEqual(9);
   });
 
   it('renders every project description', () => {
@@ -39,7 +40,7 @@ describe('ProjectsSection', () => {
   it('localizes detail button labels', () => {
     setup();
     const buttons = screen.getAllByRole('button', { name: /^Xem chi tiết/ });
-    expect(buttons).toHaveLength(6);
+    expect(buttons).toHaveLength(9);
   });
 
   it('shows case study link in modal when available', () => {
@@ -51,9 +52,67 @@ describe('ProjectsSection', () => {
     expect(link.getAttribute('rel')).toContain('noopener');
   });
 
+  it('opens the screenshot gallery from a project cover', async () => {
+    setup();
+    fireEvent.click(screen.getByRole('button', { name: /^Xem ảnh dự án Hệ thống CRM/ }));
+    expect(screen.getByRole('img', { name: 'Trang chủ CRM với các chỉ số kinh doanh' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Ảnh tiếp theo' }));
+    expect(
+      await screen.findByRole('img', { name: 'Biểu đồ marketing: người tiếp cận theo nguồn và chi phí theo tháng' })
+    ).toBeInTheDocument();
+    expect(screen.getAllByRole('button', { name: /^Xem ảnh \d/ })).toHaveLength(8);
+  });
+
+  it('shows the live website link when available', () => {
+    setup();
+    fireEvent.click(screen.getByRole('button', { name: /Xem chi tiết Nền tảng tuyển dụng/ }));
+    const link = screen.getByRole('link', { name: /Xem website/ });
+    expect(link).toHaveAttribute('href', 'https://vietdai-recruitment-web.vercel.app/');
+  });
+
+  it('shows the source code link when available', () => {
+    setup();
+    fireEvent.click(screen.getByRole('button', { name: /Xem chi tiết Gym Training Plan/ }));
+    const link = screen.getByRole('link', { name: /Mã nguồn/ });
+    expect(link).toHaveAttribute('href', 'https://github.com/nguyenngoctuyen11032003/gym-for-beginners');
+    expect(link).toHaveAttribute('target', '_blank');
+  });
+
   it('shows no case study link when absent', () => {
     setup();
-    fireEvent.click(screen.getByRole('button', { name: /Xem chi tiết Hệ thống quản lý Lớp học/ }));
+    fireEvent.click(screen.getByRole('button', { name: /Xem chi tiết Bản đồ số cơ giới hoá/ }));
     expect(screen.queryByRole('link', { name: /Xem case study/ })).not.toBeInTheDocument();
+  });
+
+  it('links the gym and e-learning projects to their live websites', () => {
+    setup();
+    fireEvent.click(screen.getByRole('button', { name: /Xem chi tiết Gym Training Plan/ }));
+    expect(screen.getByRole('link', { name: /Xem website/ })).toHaveAttribute(
+      'href',
+      'https://gym-for-beginners-ten.vercel.app/'
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Đóng' }));
+    fireEvent.click(screen.getByRole('button', { name: /Xem chi tiết Nền tảng đào tạo/ }));
+    expect(screen.getByRole('link', { name: /Xem website/ })).toHaveAttribute(
+      'href',
+      'https://elearning-platform-neon.vercel.app/'
+    );
+  });
+});
+
+describe('computeWideCards', () => {
+  const shot = { src: '/a.png', alt: 'a' };
+  const p = (images: boolean) => ({ title: 'x', years: '', role: '', scope: '', images: images ? [shot] : undefined });
+
+  it('widens the first card, an image card next to a plain one, and a lone last card', () => {
+    expect(computeWideCards([p(true), p(true), p(true), p(true), p(false), p(false), p(false)])).toEqual([
+      true, false, false, true, false, false, true,
+    ]);
+  });
+
+  it('keeps pairs of image cards side by side', () => {
+    expect(computeWideCards([p(true), p(true), p(true), p(false), p(false)])).toEqual([
+      true, false, false, false, false,
+    ]);
   });
 });
