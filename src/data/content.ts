@@ -94,6 +94,14 @@ export interface Content {
     showImage: string;
     items: ProjectItem[];
   };
+  archive: {
+    eyebrow: string;
+    heading: string;
+    hint: string;
+    shots: string;
+    projects: string;
+    listLink: string;
+  };
   certifications: {
     heading: string;
     items: { name: string; issuer?: string }[];
@@ -462,6 +470,14 @@ export const content: Record<Lang, Content> = {
         },
       ],
     },
+    archive: {
+      eyebrow: 'Kho lưu trữ dự án',
+      heading: 'Những thứ tôi đã xây dựng',
+      hint: 'Kéo để xoay',
+      shots: 'ảnh',
+      projects: 'dự án',
+      listLink: 'Xem danh sách dự án',
+    },
     certifications: {
       heading: 'Chứng chỉ',
       items: [
@@ -784,6 +800,14 @@ export const content: Record<Lang, Content> = {
           ],
         },
       ],
+    },
+    archive: {
+      eyebrow: 'Project archive',
+      heading: 'Things I have built',
+      hint: 'Drag to rotate',
+      shots: 'shots',
+      projects: 'projects',
+      listLink: 'See the project list',
     },
     certifications: {
       heading: 'Certifications',

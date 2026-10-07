@@ -13,8 +13,10 @@ A front-end-only, single-page CV/portfolio. It has no backend, CMS or form submi
 - **About**: short bio, portrait with an animated glow border, and education details.
 - **Experience**: timeline of work history, animated on scroll.
 - **Skills**: skill groups with Lucide icons, shown on tilt cards.
-- **Projects**: selected projects with year, role and scope, shown on tilt cards.
-- **Contact**: email (`mailto:` link) and location.
+- **Project archive**: every project screenshot on a 3D Fibonacci sphere with the section title on its centre. Drag to rotate (with momentum), scroll to dolly in; clicking a shot opens that project's details. Pinned while it scrolls; static with reduced motion.
+- **Projects**: project cards with screenshot covers, a gallery modal, highlights and live/source/case-study links. On desktop the cards scale in and out with scroll.
+- **Contact**: a pinned outro: the page washes to white, blended text inverts, and a large "email me" pill grows from the corner before the footer fades in.
+- **Cursor**: a small difference-blended dot that widens over links, buttons and archive shots (mouse only, off with reduced motion).
 
 Animations use framer-motion (scroll-in reveals, tilt cards, buttons) and GSAP (hero parallax).
 
@@ -44,6 +46,8 @@ docs/superpowers/      Design spec and implementation plan
 ```
 
 Most components have a matching `*.test.tsx` file next to them.
+
+Project screenshots live in `public/projects/`. After adding or replacing one, run `node scripts/make_thumbs.mjs` to rebuild the WebP thumbnails in `public/projects/thumbs/` and `src/data/projectThumbs.json` (used by the archive sphere, card covers and gallery strip).
 
 ## Getting started
 

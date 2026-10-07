@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { LangProvider } from '../context/LangContext';
 import { links } from '../data/content';
-import { ContactSection } from './ContactSection';
+import { ContactSection, outroStages } from './ContactSection';
 
 describe('ContactSection', () => {
   it('renders a mailto link to the personal gmail address', () => {
@@ -39,5 +39,20 @@ describe('ContactSection', () => {
         expect(a.getAttribute('rel')).toContain('noopener');
       });
     }
+  });
+});
+
+describe('outroStages', () => {
+  it('starts dark with the pill hidden and ends white with everything shown', () => {
+    expect(outroStages(0)).toEqual({ overlay: 0, pill: 0, footer: 0 });
+    expect(outroStages(1)).toEqual({ overlay: 1, pill: 1, footer: 1 });
+  });
+
+  it('washes to white before the pill finishes growing', () => {
+    const mid = outroStages(0.55);
+    expect(mid.overlay).toBe(1);
+    expect(mid.pill).toBeGreaterThan(0);
+    expect(mid.pill).toBeLessThan(1);
+    expect(mid.footer).toBe(0);
   });
 });

@@ -5,9 +5,11 @@ import { HeroSection } from './components/HeroSection';
 import { AboutSection } from './components/AboutSection';
 import { ExperienceSection } from './components/ExperienceSection';
 import { SkillsSection } from './components/SkillsSection';
+import { ArchiveSphere } from './components/archive/ArchiveSphere';
 import { ProjectsSection } from './components/ProjectsSection';
 import { CertificationsSection } from './components/CertificationsSection';
 import { ContactSection } from './components/ContactSection';
+import { CursorDot } from './components/ui/CursorDot';
 
 function App() {
   return (
@@ -19,10 +21,12 @@ function App() {
           <AboutSection />
           <ExperienceSection />
           <SkillsSection />
+          <ArchiveSphere />
           <ProjectsSection />
           <CertificationsSection />
           <ContactSection />
         </main>
+        <CursorDot />
       </MotionConfig>
     </LangProvider>
   );

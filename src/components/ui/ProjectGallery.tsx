@@ -2,15 +2,18 @@ import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import type { ProjectImage } from '../../data/content';
+import { thumbOf } from '../../data/thumbs';
 
 interface ProjectGalleryProps {
   images: ProjectImage[];
   labels: { prev: string; next: string; show: string };
+  /** Screenshot shown first, e.g. the one clicked in the 3D archive. */
+  initialIndex?: number;
 }
 
 /** Screenshot viewer for the project modal: main image, arrow/keyboard navigation and thumbnails. */
-export function ProjectGallery({ images, labels }: ProjectGalleryProps) {
-  const [index, setIndex] = useState(0);
+export function ProjectGallery({ images, labels, initialIndex = 0 }: ProjectGalleryProps) {
+  const [index, setIndex] = useState(() => Math.min(Math.max(initialIndex, 0), images.length - 1));
   const count = images.length;
   const current = images[index];
 
@@ -87,7 +90,7 @@ export function ProjectGallery({ images, labels }: ProjectGalleryProps) {
                 }`}
               >
                 <img
-                  src={image.src}
+                  src={thumbOf(image.src)}
                   alt=""
                   loading="lazy"
                   className="w-full h-full object-cover object-top"

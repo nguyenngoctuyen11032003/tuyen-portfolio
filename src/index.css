@@ -200,3 +200,456 @@ button:focus-visible {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   }
 }
+
+/* ---------------------------------------------------------------------------
+   Project archive: screenshots on a draggable 3D sphere (ArchiveSphere.tsx).
+   #world and #orb are 0x0 points at the viewport centre; every card and the
+   title are positioned from that same point, so the title stays on the sphere
+   origin while JS rotates the world around it.
+   ------------------------------------------------------------------------ */
+.archive {
+  --hw: min(30vw, 380px);
+  --archive-pad: clamp(16px, 2.6vw, 34px);
+  height: 175vh;
+}
+.archive-pin {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+}
+.archive-stage {
+  position: absolute;
+  inset: 0;
+  perspective: var(--persp, 1150px);
+  perspective-origin: 50% 50%;
+  overflow: hidden;
+  touch-action: pan-y;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.archive-stage:active {
+  cursor: grabbing;
+}
+.archive-world,
+.archive-orb {
+  position: absolute;
+  width: 0;
+  height: 0;
+  transform-style: preserve-3d;
+}
+.archive-world {
+  top: 50%;
+  left: 50%;
+  will-change: transform;
+}
+.archive-orb {
+  top: 0;
+  left: 0;
+}
+.archive-card {
+  position: absolute;
+  top: 0;
+  left: 0;
+  cursor: pointer;
+}
+.archive-card figure {
+  position: relative;
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 3px;
+  background: #0a0a0a;
+  transition: transform 0.5s ease;
+}
+.archive-card:hover figure {
+  transform: scale(1.045);
+}
+.archive-card figure::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 3px;
+  background: rgba(0, 0, 0, var(--d, 0));
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.07);
+  pointer-events: none;
+}
+.archive-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top;
+  opacity: 0;
+  transition: opacity 0.8s ease-out;
+  pointer-events: none;
+}
+.archive-card img.in {
+  opacity: 1;
+}
+
+/* Centred on the origin: negative margin of half the title width (the parent is 0 wide, so a
+   percentage would be 0) and translateY(-50%) on .inner. JS owns the h2's transform. */
+.archive-headline {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: var(--hw);
+  margin-left: calc(var(--hw) / -2);
+  text-align: center;
+  font-family: 'Instrument Serif', serif;
+  font-weight: 400;
+  font-size: clamp(22px, 2.9vw, 42px);
+  line-height: 1.04;
+  letter-spacing: -0.01em;
+  color: #fff;
+  text-shadow: 0 2px 34px rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+}
+.archive-headline .inner {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  transform: translateY(-50%);
+}
+.archive-eyebrow {
+  display: block;
+  margin-bottom: 1.1rem;
+  font-family: 'Barlow', sans-serif;
+  font-size: 11px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: rgba(244, 241, 234, 0.55);
+  text-shadow: none;
+  opacity: 0;
+  transition: opacity 1s ease 0.6s;
+}
+.archive-word {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(0.42em);
+  filter: blur(7px);
+  transition: opacity 1.05s ease, transform 1.15s cubic-bezier(0.22, 0.61, 0.36, 1), filter 1.05s ease;
+  transition-delay: calc(0.75s + var(--i) * 0.085s);
+}
+.archive.is-revealed .archive-eyebrow {
+  opacity: 1;
+}
+.archive.is-revealed .archive-word {
+  opacity: 1;
+  transform: none;
+  filter: blur(0);
+}
+
+.archive-vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(to bottom, #000 0%, transparent 14%, transparent 86%, #000 100%),
+    radial-gradient(ellipse 88% 92% at 50% 50%, transparent 48%, rgba(0, 0, 0, 0.26) 80%, rgba(0, 0, 0, 0.72) 100%);
+}
+
+.archive-count,
+.archive-cue,
+.archive-list-link {
+  position: absolute;
+  bottom: calc(var(--archive-pad) + env(safe-area-inset-bottom));
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(244, 241, 234, 0.45);
+  white-space: nowrap;
+}
+.archive-count {
+  left: calc(var(--archive-pad) + env(safe-area-inset-left));
+}
+.archive-list-link {
+  right: calc(var(--archive-pad) + env(safe-area-inset-right));
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  color: rgba(244, 241, 234, 0.7);
+  transition: color 0.3s ease;
+}
+.archive-list-link:hover {
+  color: #fff;
+}
+.archive-cue {
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  pointer-events: none;
+}
+.archive-cue s {
+  position: relative;
+  display: block;
+  width: 44px;
+  height: 1px;
+  overflow: hidden;
+  background: rgba(244, 241, 234, 0.28);
+}
+.archive-cue s::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: #f4f1ea;
+  animation: archive-sweep 2.6s ease infinite;
+}
+@keyframes archive-sweep {
+  0% {
+    transform: translateX(-100%);
+  }
+  55% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@media (max-width: 768px) {
+  .archive-headline {
+    font-size: clamp(22px, 6vw, 32px);
+  }
+}
+@media (max-width: 640px) {
+  .archive {
+    --hw: min(64vw, 280px);
+    height: 150vh;
+  }
+  .archive-cue {
+    display: none;
+  }
+}
+@media (max-width: 380px) {
+  .archive {
+    --hw: min(70vw, 250px);
+  }
+  .archive-count {
+    display: none;
+  }
+}
+@media (max-height: 520px) and (orientation: landscape) {
+  .archive-headline {
+    font-size: clamp(20px, 5.4vh, 30px);
+  }
+  .archive-eyebrow {
+    margin-bottom: 0.5rem;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .archive {
+    height: auto;
+  }
+  .archive-pin {
+    position: relative;
+  }
+  .archive-word,
+  .archive-eyebrow {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+  .archive-cue s::after {
+    animation: none;
+  }
+}
+
+/* Pointer-following dot (CursorDot.tsx): inverts whatever is beneath it, widens over targets. */
+.cursor-dot {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 300;
+  width: 14px;
+  height: 14px;
+  margin: -7px 0 0 -7px;
+  border-radius: 50%;
+  border: 1px solid transparent;
+  background: rgba(214, 212, 209, 0.9);
+  mix-blend-mode: difference;
+  pointer-events: none;
+  opacity: 0;
+  transition:
+    width 0.35s ease,
+    height 0.35s ease,
+    margin 0.35s ease,
+    background 0.35s ease,
+    border-color 0.35s ease,
+    opacity 0.3s ease;
+}
+.cursor-dot.on {
+  opacity: 1;
+}
+.cursor-dot.wide {
+  width: 52px;
+  height: 52px;
+  margin: -26px 0 0 -26px;
+  background: rgba(244, 241, 234, 0.14);
+  border-color: rgba(244, 241, 234, 0.75);
+}
+
+/* ---------------------------------------------------------------------------
+   Contact outro (ContactSection.tsx). Static by default; with .is-scrubbed the
+   section is pinned and JS feeds --overlay / --pill / --foot (0..1) from scroll:
+   the page washes to white, blended text inverts, a giant pill grows from the
+   bottom-right corner, then the footer fades in.
+   ------------------------------------------------------------------------ */
+.outro {
+  --overlay: 0;
+  --pill: 1;
+  --foot: 1;
+  --outro-pad: clamp(16px, 2.6vw, 34px);
+  position: relative;
+  background: #000;
+}
+.outro.is-scrubbed {
+  --pill: 0;
+  --foot: 0;
+  height: 240vh;
+}
+.outro-pin {
+  position: relative;
+  min-height: 100vh;
+  min-height: 100dvh;
+  overflow: hidden;
+  background: #000;
+  isolation: isolate;
+}
+.outro.is-scrubbed .outro-pin {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100dvh;
+}
+.outro-overlay {
+  position: absolute;
+  inset: 0;
+  background: #fff;
+  opacity: var(--overlay);
+  pointer-events: none;
+}
+.outro-blend {
+  position: relative;
+  color: #fff;
+  mix-blend-mode: difference;
+}
+.outro-top {
+  padding: calc(var(--outro-pad) * 3.2 + 3rem) var(--outro-pad) 0;
+}
+.outro-heading {
+  max-width: 13ch;
+  font-family: 'Instrument Serif', serif;
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(46px, 8.4vw, 132px);
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+}
+/* WordsPullUp clips each word to its line box; give big italic glyphs room for accents,
+   descenders and the right-hand overhang without shifting the layout. */
+.outro-heading [aria-hidden] > span {
+  padding: 0.16em 0.08em 0.2em 0;
+  margin: -0.16em 0.17em -0.2em 0;
+}
+.outro-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.75rem;
+  margin-top: clamp(24px, 4vh, 44px);
+  font-size: 13px;
+  letter-spacing: 0.02em;
+}
+.outro-meta a,
+.outro-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 32px;
+  opacity: 0.75;
+  transition: opacity 0.3s ease;
+}
+.outro-meta a:hover {
+  opacity: 1;
+}
+.outro-pill {
+  position: absolute;
+  right: calc(var(--outro-pad) + env(safe-area-inset-right));
+  bottom: calc(var(--outro-pad) * 2 + 44px + env(safe-area-inset-bottom));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3em;
+  width: min(620px, calc(100vw - var(--outro-pad) * 2));
+  height: clamp(96px, 17vh, 176px);
+  border-radius: 999px;
+  background: #0b0b0b;
+  color: #f4f1ea;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+  font-family: 'Instrument Serif', serif;
+  font-size: clamp(30px, 4.6vw, 68px);
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+  transform: scale(var(--pill));
+  transform-origin: right bottom;
+}
+.outro-pill-arrow {
+  width: 0.7em;
+  height: 0.7em;
+  transition: transform 0.45s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+.outro-pill:hover .outro-pill-arrow {
+  transform: rotate(45deg);
+}
+.outro-footer {
+  position: absolute;
+  left: calc(var(--outro-pad) + env(safe-area-inset-left));
+  right: calc(var(--outro-pad) + env(safe-area-inset-right));
+  bottom: calc(var(--outro-pad) + env(safe-area-inset-bottom));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  opacity: var(--foot);
+}
+.outro-top-link {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+}
+@media (max-width: 640px) {
+  .outro.is-scrubbed {
+    height: 210vh;
+  }
+  .outro-top {
+    padding-top: calc(var(--outro-pad) * 2 + 4rem);
+  }
+  .outro-pill {
+    left: calc(var(--outro-pad) + env(safe-area-inset-left));
+    width: auto;
+    height: 88px;
+    font-size: clamp(24px, 7vw, 32px);
+  }
+}
+@media (max-height: 520px) and (orientation: landscape) {
+  .outro-heading {
+    font-size: clamp(32px, 9vh, 56px);
+  }
+  .outro-pill {
+    height: 72px;
+    font-size: 28px;
+  }
+}

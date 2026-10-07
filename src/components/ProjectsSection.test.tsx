@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { LangProvider } from '../context/LangContext';
-import { ProjectsSection, computeWideCards } from './ProjectsSection';
+import { ProjectsSection, cardOrigins, computeWideCards } from './ProjectsSection';
 import { content } from '../data/content';
 
 function setup() {
@@ -113,6 +113,19 @@ describe('computeWideCards', () => {
   it('keeps pairs of image cards side by side', () => {
     expect(computeWideCards([p(true), p(true), p(true), p(false), p(false)])).toEqual([
       true, false, false, false, false,
+    ]);
+  });
+});
+
+describe('cardOrigins', () => {
+  it('grows paired cards from the gutter corner and wide cards from the middle', () => {
+    expect(cardOrigins([true, false, false, true, false, false])).toEqual([
+      'center bottom',
+      'right bottom',
+      'left bottom',
+      'center bottom',
+      'right bottom',
+      'left bottom',
     ]);
   });
 });
