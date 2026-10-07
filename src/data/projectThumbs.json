@@ -1,226 +1,271 @@
 {
   "/projects/crm-1.png": {
     "thumb": "/projects/thumbs/crm-1.webp",
+    "medium": "/projects/medium/crm-1.webp",
     "w": 1917,
     "h": 966
   },
   "/projects/crm-2.png": {
     "thumb": "/projects/thumbs/crm-2.webp",
+    "medium": "/projects/medium/crm-2.webp",
     "w": 1917,
     "h": 968
   },
   "/projects/crm-3.png": {
     "thumb": "/projects/thumbs/crm-3.webp",
+    "medium": "/projects/medium/crm-3.webp",
     "w": 1917,
     "h": 967
   },
   "/projects/crm-4.png": {
     "thumb": "/projects/thumbs/crm-4.webp",
+    "medium": "/projects/medium/crm-4.webp",
     "w": 1917,
     "h": 971
   },
   "/projects/crm-5.png": {
     "thumb": "/projects/thumbs/crm-5.webp",
+    "medium": "/projects/medium/crm-5.webp",
     "w": 1917,
     "h": 967
   },
   "/projects/crm-6.png": {
     "thumb": "/projects/thumbs/crm-6.webp",
+    "medium": "/projects/medium/crm-6.webp",
     "w": 1856,
     "h": 935
   },
   "/projects/crm-7.png": {
     "thumb": "/projects/thumbs/crm-7.webp",
+    "medium": "/projects/medium/crm-7.webp",
     "w": 1860,
     "h": 937
   },
   "/projects/crm-8.png": {
     "thumb": "/projects/thumbs/crm-8.webp",
+    "medium": "/projects/medium/crm-8.webp",
     "w": 1862,
     "h": 937
   },
   "/projects/elearning-1.png": {
     "thumb": "/projects/thumbs/elearning-1.webp",
+    "medium": "/projects/medium/elearning-1.webp",
     "w": 1917,
     "h": 968
   },
   "/projects/elearning-2.png": {
     "thumb": "/projects/thumbs/elearning-2.webp",
+    "medium": "/projects/medium/elearning-2.webp",
     "w": 1917,
     "h": 971
   },
   "/projects/elearning-3.png": {
     "thumb": "/projects/thumbs/elearning-3.webp",
+    "medium": "/projects/medium/elearning-3.webp",
     "w": 1917,
     "h": 967
   },
   "/projects/fofreexit-1.png": {
     "thumb": "/projects/thumbs/fofreexit-1.webp",
+    "medium": "/projects/medium/fofreexit-1.webp",
     "w": 1917,
     "h": 1078
   },
   "/projects/fofreexit-2.png": {
     "thumb": "/projects/thumbs/fofreexit-2.webp",
+    "medium": "/projects/medium/fofreexit-2.webp",
     "w": 1917,
     "h": 1078
   },
   "/projects/fofreexit-3.png": {
     "thumb": "/projects/thumbs/fofreexit-3.webp",
+    "medium": "/projects/medium/fofreexit-3.webp",
     "w": 1917,
     "h": 1078
   },
   "/projects/fofreexit-4.png": {
     "thumb": "/projects/thumbs/fofreexit-4.webp",
+    "medium": "/projects/medium/fofreexit-4.webp",
     "w": 1917,
     "h": 1078
   },
   "/projects/gym-1.png": {
     "thumb": "/projects/thumbs/gym-1.webp",
+    "medium": "/projects/medium/gym-1.webp",
     "w": 1907,
     "h": 973
   },
   "/projects/gym-2.png": {
     "thumb": "/projects/thumbs/gym-2.webp",
+    "medium": "/projects/medium/gym-2.webp",
     "w": 1890,
     "h": 971
   },
   "/projects/gym-3.png": {
     "thumb": "/projects/thumbs/gym-3.webp",
+    "medium": "/projects/medium/gym-3.webp",
     "w": 400,
     "h": 858
   },
   "/projects/gym-4.png": {
     "thumb": "/projects/thumbs/gym-4.webp",
+    "medium": "/projects/medium/gym-4.webp",
     "w": 397,
     "h": 858
   },
   "/projects/hotel-1.png": {
     "thumb": "/projects/thumbs/hotel-1.webp",
+    "medium": "/projects/medium/hotel-1.webp",
     "w": 1906,
     "h": 968
   },
   "/projects/hotel-2.png": {
     "thumb": "/projects/thumbs/hotel-2.webp",
+    "medium": "/projects/medium/hotel-2.webp",
     "w": 1906,
     "h": 966
   },
   "/projects/hotel-3.png": {
     "thumb": "/projects/thumbs/hotel-3.webp",
+    "medium": "/projects/medium/hotel-3.webp",
     "w": 1902,
     "h": 972
   },
   "/projects/hotel-4.png": {
     "thumb": "/projects/thumbs/hotel-4.webp",
+    "medium": "/projects/medium/hotel-4.webp",
     "w": 1901,
     "h": 910
   },
   "/projects/hotel-5.png": {
     "thumb": "/projects/thumbs/hotel-5.webp",
+    "medium": "/projects/medium/hotel-5.webp",
     "w": 1917,
     "h": 1078
   },
   "/projects/hotel-6.png": {
     "thumb": "/projects/thumbs/hotel-6.webp",
+    "medium": "/projects/medium/hotel-6.webp",
     "w": 1917,
     "h": 1078
   },
   "/projects/hrm-1.png": {
     "thumb": "/projects/thumbs/hrm-1.webp",
+    "medium": "/projects/medium/hrm-1.webp",
     "w": 1862,
     "h": 937
   },
   "/projects/hrm-2.png": {
     "thumb": "/projects/thumbs/hrm-2.webp",
+    "medium": "/projects/medium/hrm-2.webp",
     "w": 1857,
     "h": 932
   },
   "/projects/hrm-3.png": {
     "thumb": "/projects/thumbs/hrm-3.webp",
+    "medium": "/projects/medium/hrm-3.webp",
     "w": 1861,
     "h": 935
   },
   "/projects/hrm-4.png": {
     "thumb": "/projects/thumbs/hrm-4.webp",
+    "medium": "/projects/medium/hrm-4.webp",
     "w": 1870,
     "h": 935
   },
   "/projects/hrm-5.png": {
     "thumb": "/projects/thumbs/hrm-5.webp",
+    "medium": "/projects/medium/hrm-5.webp",
     "w": 1861,
     "h": 940
   },
   "/projects/hrm-6.png": {
     "thumb": "/projects/thumbs/hrm-6.webp",
+    "medium": "/projects/medium/hrm-6.webp",
     "w": 1862,
     "h": 937
   },
   "/projects/mechmap-1.png": {
     "thumb": "/projects/thumbs/mechmap-1.webp",
+    "medium": "/projects/medium/mechmap-1.webp",
     "w": 1917,
     "h": 1077
   },
   "/projects/mechmap-2.png": {
     "thumb": "/projects/thumbs/mechmap-2.webp",
+    "medium": "/projects/medium/mechmap-2.webp",
     "w": 1917,
     "h": 1078
   },
   "/projects/mechmap-3.png": {
     "thumb": "/projects/thumbs/mechmap-3.webp",
+    "medium": "/projects/medium/mechmap-3.webp",
     "w": 1917,
     "h": 1078
   },
   "/projects/mechmap-4.png": {
     "thumb": "/projects/thumbs/mechmap-4.webp",
+    "medium": "/projects/medium/mechmap-4.webp",
     "w": 1917,
     "h": 1078
   },
   "/projects/vietdai-1.png": {
     "thumb": "/projects/thumbs/vietdai-1.webp",
+    "medium": "/projects/medium/vietdai-1.webp",
     "w": 1901,
     "h": 968
   },
   "/projects/vietdai-2.png": {
     "thumb": "/projects/thumbs/vietdai-2.webp",
+    "medium": "/projects/medium/vietdai-2.webp",
     "w": 1896,
     "h": 968
   },
   "/projects/vietdai-3.png": {
     "thumb": "/projects/thumbs/vietdai-3.webp",
+    "medium": "/projects/medium/vietdai-3.webp",
     "w": 1902,
     "h": 967
   },
   "/projects/vietdai-4.png": {
     "thumb": "/projects/thumbs/vietdai-4.webp",
+    "medium": "/projects/medium/vietdai-4.webp",
     "w": 1905,
     "h": 970
   },
   "/projects/vr360-1.png": {
     "thumb": "/projects/thumbs/vr360-1.webp",
+    "medium": "/projects/medium/vr360-1.webp",
     "w": 1917,
     "h": 1078
   },
   "/projects/vr360-2.png": {
     "thumb": "/projects/thumbs/vr360-2.webp",
+    "medium": "/projects/medium/vr360-2.webp",
     "w": 1861,
     "h": 1048
   },
   "/projects/vr360-3.png": {
     "thumb": "/projects/thumbs/vr360-3.webp",
+    "medium": "/projects/medium/vr360-3.webp",
     "w": 1861,
     "h": 1042
   },
   "/projects/vr360-4.png": {
     "thumb": "/projects/thumbs/vr360-4.webp",
+    "medium": "/projects/medium/vr360-4.webp",
     "w": 1917,
     "h": 970
   },
   "/projects/vr360-5.png": {
     "thumb": "/projects/thumbs/vr360-5.webp",
+    "medium": "/projects/medium/vr360-5.webp",
     "w": 1917,
     "h": 965
   },
   "/projects/vr360-6.png": {
     "thumb": "/projects/thumbs/vr360-6.webp",
+    "medium": "/projects/medium/vr360-6.webp",
     "w": 1917,
     "h": 972
   }

@@ -931,3 +931,336 @@ button:focus-visible {
     padding-left: 0.16em;
   }
 }
+
+/* ---------------------------------------------------------------------------
+   Featured projects (ProjectsSection.tsx): a cinematic stage for the lead
+   project, then a 7/5 bento grid. --accent-gradient is the emerald take on the
+   reference's blue ring (#89AACC -> #4E85BF).
+   ------------------------------------------------------------------------ */
+:root {
+  --accent-gradient: linear-gradient(90deg, #6ee7b7 0%, #34d399 45%, #22d3ee 100%);
+}
+@keyframes gradient-shift {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+@keyframes stage-bob {
+  0%,
+  100% {
+    transform: translateY(0) scale(1.05);
+  }
+  50% {
+    transform: translateY(-6px) scale(1.05);
+  }
+}
+
+/* Button whose border becomes the animated accent gradient on hover. */
+.gradient-ring-btn {
+  position: relative;
+  align-items: center;
+  border-radius: 999px;
+  padding: 1px;
+  background: rgba(255, 255, 255, 0.12);
+  font-size: 0.875rem;
+  color: #f4f1ea;
+  transition: transform 0.3s ease;
+}
+.gradient-ring-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--accent-gradient);
+  background-size: 200% 200%;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  animation: gradient-shift 6s ease infinite;
+}
+.gradient-ring-btn > span {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 44px;
+  padding: 0 1.4rem;
+  border-radius: inherit;
+  background: #0a0a0a;
+}
+.gradient-ring-btn:hover {
+  transform: scale(1.04);
+}
+.gradient-ring-btn:hover::before {
+  opacity: 1;
+}
+
+/* Lead project stage. */
+.stage {
+  position: relative;
+  overflow: hidden;
+  border-radius: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #050505;
+  min-height: clamp(520px, 62vh, 680px);
+  display: flex;
+  align-items: flex-end;
+  isolation: isolate;
+}
+.stage-media {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+}
+.stage-shot {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+  opacity: 0;
+  transition: opacity 1s ease-in-out;
+  animation: stage-bob 3s ease-in-out infinite;
+}
+.stage-shot.is-active {
+  opacity: 1;
+}
+.stage-shade {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, 0.94) 0%, rgba(0, 0, 0, 0.86) 38%, rgba(0, 0, 0, 0.35) 66%, rgba(0, 0, 0, 0.05) 100%),
+    linear-gradient(0deg, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0) 50%);
+}
+.stage-content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+  width: 100%;
+  max-width: 620px;
+  padding: clamp(24px, 4vw, 52px);
+}
+.stage-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 12px;
+  color: rgba(244, 241, 234, 0.9);
+}
+.stage-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #34d399;
+  box-shadow: 0 0 10px #34d399;
+}
+.stage-title {
+  font-family: 'Instrument Serif', serif;
+  font-weight: 400;
+  font-size: clamp(2.25rem, 5vw, 4.4rem);
+  line-height: 1.02;
+  letter-spacing: -0.01em;
+  color: #fff;
+}
+.stage-meta {
+  margin-top: -6px;
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(244, 241, 234, 0.5);
+}
+.stage-text {
+  max-width: 34rem;
+  font-size: 0.95rem;
+  line-height: 1.65;
+  color: rgba(244, 241, 234, 0.75);
+}
+.stage-actions {
+  margin-top: 6px;
+}
+.stage-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 1.4rem;
+  border-radius: 999px;
+  background: #f4f1ea;
+  color: #050505;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: transform 0.3s ease, background 0.3s ease;
+}
+.stage-cta:hover {
+  transform: scale(1.04);
+  background: #fff;
+}
+.stage-switcher {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 18px;
+  margin-top: 10px;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+}
+.stage-switcher button {
+  min-height: 36px;
+  padding: 0 2px;
+  border-bottom: 1px solid transparent;
+  color: rgba(244, 241, 234, 0.5);
+  font-variant-numeric: tabular-nums;
+  transition: color 0.3s ease, border-color 0.3s ease;
+}
+.stage-switcher button:hover {
+  color: rgba(244, 241, 234, 0.8);
+}
+.stage-switcher button.is-active {
+  color: #fff;
+  border-bottom-color: #34d399;
+}
+.stage-caption {
+  flex-basis: 100%;
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  color: rgba(244, 241, 234, 0.45);
+}
+
+/* Bento tiles. */
+.bento-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #0c0c0c;
+  transition: border-color 0.4s ease;
+}
+.bento-card:hover {
+  border-color: rgba(52, 211, 153, 0.35);
+}
+.bento-media {
+  position: relative;
+  height: clamp(220px, 26vw, 360px);
+  overflow: hidden;
+  background: #070707;
+}
+.bento-halftone {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: radial-gradient(circle, #000 1px, transparent 1px);
+  background-size: 4px 4px;
+  opacity: 0.07;
+  mix-blend-mode: multiply;
+}
+.bento-count {
+  position: absolute;
+  left: 14px;
+  bottom: 14px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(6px);
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.85);
+  transition: opacity 0.3s ease;
+}
+.bento-hover {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(5, 5, 5, 0.6);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+.bento-card:hover .bento-hover,
+.bento-card:focus-within .bento-hover {
+  opacity: 1;
+}
+.bento-card:hover .bento-count {
+  opacity: 0;
+}
+.bento-pill {
+  max-width: 100%;
+  padding: 1.5px;
+  border-radius: 999px;
+  background: var(--accent-gradient);
+  background-size: 200% 200%;
+  animation: gradient-shift 6s ease infinite;
+  transform: translateY(8px);
+  transition: transform 0.45s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+.bento-card:hover .bento-pill {
+  transform: none;
+}
+.bento-pill-inner {
+  display: block;
+  max-width: min(420px, 78vw);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 10px 20px;
+  border-radius: 999px;
+  background: #fff;
+  color: #0a0a0a;
+  font-size: 0.875rem;
+}
+.bento-pill-inner em {
+  font-family: 'Instrument Serif', serif;
+  font-size: 1.1em;
+}
+.bento-body {
+  padding: 20px 22px 24px;
+}
+.bento-hit {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+}
+.bento-hit:focus-visible {
+  outline-offset: -3px;
+}
+
+@media (max-width: 768px) {
+  .stage {
+    flex-direction: column;
+    align-items: stretch;
+    min-height: 0;
+  }
+  .stage-media {
+    position: relative;
+    z-index: 0;
+    aspect-ratio: 16 / 10;
+  }
+  .stage-shade {
+    background: linear-gradient(0deg, #050505 0%, rgba(5, 5, 5, 0) 55%);
+  }
+  .bento-media {
+    height: auto;
+    aspect-ratio: 16 / 10;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .stage-shot,
+  .bento-pill,
+  .gradient-ring-btn::before {
+    animation: none;
+  }
+}

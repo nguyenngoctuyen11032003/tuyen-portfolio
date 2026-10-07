@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import type { ProjectImage } from '../../data/content';
-import { thumbOf } from '../../data/thumbs';
+import { mediumOf, thumbOf } from '../../data/thumbs';
 
 interface ProjectGalleryProps {
   images: ProjectImage[];
@@ -35,7 +35,7 @@ export function ProjectGallery({ images, labels, initialIndex = 0 }: ProjectGall
         <AnimatePresence mode="wait" initial={false}>
           <motion.img
             key={current.src}
-            src={current.src}
+            src={mediumOf(current.src)}
             alt={current.alt}
             className="absolute inset-0 w-full h-full object-contain"
             initial={{ opacity: 0, scale: 1.02 }}

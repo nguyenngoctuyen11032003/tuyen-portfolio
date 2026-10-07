@@ -81,7 +81,14 @@ export interface Content {
     note: string;
   };
   projects: {
+    eyebrow: string;
     heading: string;
+    /** Part of the heading set in italic serif. */
+    headingAccent: string;
+    intro: string;
+    archiveLink: string;
+    viewLabel: string;
+    featuredLabel: string;
     also: string;
     caseStudyLabel: string;
     detailsLabel: string;
@@ -260,7 +267,13 @@ export const content: Record<Lang, Content> = {
       note: 'Phát triển có ý thức bảo mật: xác thực, phân quyền và JWT, hình thành từ môi trường làm việc tại công ty an ninh mạng.',
     },
     projects: {
+      eyebrow: 'Dự án chọn lọc',
       heading: 'Dự án tiêu biểu',
+      headingAccent: 'tiêu biểu',
+      intro: 'Những hệ thống tôi đã xây dựng, từ yêu cầu nghiệp vụ đến khi chạy thực tế.',
+      archiveLink: 'Xem kho lưu trữ',
+      viewLabel: 'Xem',
+      featuredLabel: 'Nổi bật',
       also: 'Ngoài ra: website doanh nghiệp & sản phẩm, công cụ nghiệp vụ nội bộ.',
       caseStudyLabel: 'Xem case study',
       detailsLabel: 'Xem chi tiết',
@@ -591,7 +604,13 @@ export const content: Record<Lang, Content> = {
       note: 'Security-aware development: authentication, authorization, and JWT, shaped by working at a cybersecurity company.',
     },
     projects: {
+      eyebrow: 'Selected work',
       heading: 'Featured projects',
+      headingAccent: 'projects',
+      intro: 'Systems I have built, from business requirements to software running in production.',
+      archiveLink: 'Open the archive',
+      viewLabel: 'View',
+      featuredLabel: 'Featured',
       also: 'Also: corporate & product websites, internal business tools.',
       caseStudyLabel: 'Case study',
       detailsLabel: 'View details of',

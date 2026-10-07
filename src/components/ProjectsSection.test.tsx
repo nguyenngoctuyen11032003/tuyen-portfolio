@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { LangProvider } from '../context/LangContext';
-import { ProjectsSection, cardOrigins, computeWideCards } from './ProjectsSection';
+import { ProjectsSection, bentoOrigins, bentoSpans } from './ProjectsSection';
 import { content } from '../data/content';
 
 function setup() {
@@ -15,9 +15,9 @@ function setup() {
 describe('ProjectsSection', () => {
   it('renders all 9 project cards', () => {
     setup();
-    expect(screen.getByText('Hệ thống quản trị khách sạn ERP')).toBeInTheDocument();
-    expect(screen.getByText('Số hoá di tích cho xã phường')).toBeInTheDocument();
-    expect(screen.getByText('FoFreeXit — Phần mềm chỉnh sửa PDF')).toBeInTheDocument();
+    for (const p of content.vi.projects.items) {
+      expect(screen.getByRole('heading', { name: p.title })).toBeInTheDocument();
+    }
     expect(screen.getAllByText(/2026|2025|2024/).length).toBeGreaterThanOrEqual(9);
   });
 
@@ -54,7 +54,7 @@ describe('ProjectsSection', () => {
 
   it('opens the screenshot gallery from a project cover', async () => {
     setup();
-    fireEvent.click(screen.getByRole('button', { name: /^Xem ảnh dự án Hệ thống CRM/ }));
+    fireEvent.click(screen.getByRole('button', { name: /^Xem chi tiết Hệ thống CRM/ }));
     expect(screen.getByRole('img', { name: 'Trang chủ CRM với các chỉ số kinh doanh' })).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Ảnh tiếp theo' }));
     expect(
@@ -100,32 +100,33 @@ describe('ProjectsSection', () => {
   });
 });
 
-describe('computeWideCards', () => {
-  const shot = { src: '/a.png', alt: 'a' };
-  const p = (images: boolean) => ({ title: 'x', years: '', role: '', scope: '', images: images ? [shot] : undefined });
-
-  it('widens the first card, an image card next to a plain one, and a lone last card', () => {
-    expect(computeWideCards([p(true), p(true), p(true), p(true), p(false), p(false), p(false)])).toEqual([
-      true, false, false, true, false, false, true,
-    ]);
+describe('featured stage', () => {
+  it('leads with the first project and switches its screenshots', () => {
+    setup();
+    const lead = content.vi.projects.items[0];
+    const switches = screen.getAllByRole('button', { name: (name) => name.startsWith(`${lead.title}: `) });
+    expect(switches).toHaveLength(lead.images!.length);
+    expect(switches[0]).toHaveAttribute('aria-pressed', 'true');
+    fireEvent.click(switches[1]);
+    expect(switches[1]).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByText(lead.images![1].alt)).toBeInTheDocument();
   });
 
-  it('keeps pairs of image cards side by side', () => {
-    expect(computeWideCards([p(true), p(true), p(true), p(false), p(false)])).toEqual([
-      true, false, false, false, false,
-    ]);
+  it('opens the lead project on the screenshot being shown', () => {
+    setup();
+    const lead = content.vi.projects.items[0];
+    fireEvent.click(screen.getByRole('button', { name: (name) => name.startsWith(`${lead.title}: 2/`) }));
+    fireEvent.click(screen.getByRole('button', { name: `Xem chi tiết ${lead.title}` }));
+    expect(screen.getByRole('img', { name: lead.images![1].alt })).toBeInTheDocument();
   });
 });
 
-describe('cardOrigins', () => {
-  it('grows paired cards from the gutter corner and wide cards from the middle', () => {
-    expect(cardOrigins([true, false, false, true, false, false])).toEqual([
-      'center bottom',
-      'right bottom',
-      'left bottom',
-      'center bottom',
-      'right bottom',
-      'left bottom',
-    ]);
+describe('bento layout', () => {
+  it('alternates 7/5 and 5/7 rows', () => {
+    expect(bentoSpans(8)).toEqual([7, 5, 5, 7, 7, 5, 5, 7]);
+  });
+
+  it('grows each card from the gutter between the pair', () => {
+    expect(bentoOrigins(4)).toEqual(['right bottom', 'left bottom', 'right bottom', 'left bottom']);
   });
 });
