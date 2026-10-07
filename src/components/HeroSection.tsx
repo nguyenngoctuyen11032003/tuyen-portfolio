@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { ArrowRight, ChevronDown, Download } from 'lucide-react';
 import { useLang } from '../context/LangContext';
+import { useIntroDone } from '../context/IntroContext';
 import { links } from '../data/content';
 import { WordsPullUp } from './ui/WordsPullUp';
 import { PillButton } from './ui/PillButton';
@@ -90,6 +91,7 @@ function useParticleAurora(canvasRef: React.RefObject<HTMLCanvasElement | null>)
 
 export function HeroSection() {
   const { t } = useLang();
+  const introDone = useIntroDone();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const layerRef = useRef<HTMLDivElement>(null);
 
@@ -130,13 +132,13 @@ export function HeroSection() {
         </span>
 
         <h1 className="min-w-0 max-w-full text-[clamp(2.25rem,5.5vw,4.5rem)] font-serif leading-[1.1] md:max-w-3xl text-ink">
-          <WordsPullUp text={before} eager staggerDelay={0.05} />
-          {accent && <WordsPullUp text={accent} wordClassName="italic text-primary" eager staggerDelay={0.05} />}
+          <WordsPullUp text={before} eager hold={!introDone} staggerDelay={0.05} />
+          {accent && <WordsPullUp text={accent} wordClassName="italic text-primary" eager hold={!introDone} staggerDelay={0.05} />}
           {after &&
             (isAfterPunctuationOnly ? (
               <span className="italic text-primary">{after}</span>
             ) : (
-              <WordsPullUp text={after} eager staggerDelay={0.05} />
+              <WordsPullUp text={after} eager hold={!introDone} staggerDelay={0.05} />
             ))}
         </h1>
 

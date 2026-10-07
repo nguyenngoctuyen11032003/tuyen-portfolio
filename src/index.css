@@ -653,3 +653,281 @@ button:focus-visible {
     font-size: 28px;
   }
 }
+
+/* ---------------------------------------------------------------------------
+   Cinematic intro (intro/CinematicIntro.tsx): terminal boot -> ACCESS GRANTED.
+   Swap --intro-accent / --intro-shine to recolour it (the original brief used
+   gold #FFC000 / #fff4cc; here it follows the site's emerald).
+   ------------------------------------------------------------------------ */
+.intro {
+  --intro-accent: #34d399;
+  --intro-shine: #d1fae5;
+  --intro-cyan: #29abe2;
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: #000;
+  color: #f4f1ea;
+  overflow: hidden;
+}
+.intro-boot,
+.intro-access {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+.intro-terminal {
+  width: min(720px, 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  background: #050505;
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(52, 211, 153, 0.04);
+  font-family: 'Space Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  overflow: hidden;
+}
+.intro-titlebar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 34px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: rgba(244, 241, 234, 0.45);
+}
+.intro-dots {
+  position: absolute;
+  left: 14px;
+  display: flex;
+  gap: 7px;
+}
+.intro-dots i {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: #ff5f57;
+}
+.intro-dots i:nth-child(2) {
+  background: #febc2e;
+}
+.intro-dots i:nth-child(3) {
+  background: #28c840;
+}
+.intro-screen {
+  min-height: 300px;
+  padding: 18px 22px 22px;
+  font-size: clamp(10.5px, 1.5vw, 13px);
+  line-height: 1.75;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.intro-line {
+  color: rgba(244, 241, 234, 0.82);
+}
+.intro-line.is-sub {
+  padding-left: 1.2em;
+  color: rgba(244, 241, 234, 0.45);
+}
+.intro-prompt {
+  color: var(--intro-accent);
+}
+.intro-ok {
+  color: var(--intro-accent);
+  font-weight: 700;
+}
+.intro-caret {
+  display: inline-block;
+  width: 0.6em;
+  height: 1.05em;
+  margin-left: 0.35em;
+  vertical-align: -0.18em;
+  background: var(--intro-accent);
+  animation: intro-blink 1s steps(1) infinite;
+}
+@keyframes intro-blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+.intro-access-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+.intro-rule {
+  display: block;
+  width: min(260px, 60vw);
+  height: 1px;
+  background: var(--intro-accent);
+  box-shadow: 0 0 12px var(--intro-accent);
+}
+.intro-title {
+  margin: 26px 0 0;
+  padding-left: 0.24em; /* balance the trailing letter-spacing */
+  font-family: 'Space Grotesk', 'Barlow', sans-serif;
+  font-size: clamp(30px, 6vw, 84px);
+  font-weight: 400;
+  letter-spacing: 0.24em;
+  line-height: 1;
+}
+.intro-shimmer {
+  background: linear-gradient(
+    100deg,
+    var(--intro-accent) 0%,
+    var(--intro-accent) 38%,
+    var(--intro-shine) 50%,
+    var(--intro-accent) 62%,
+    var(--intro-accent) 100%
+  );
+  background-size: 250% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: intro-shimmer 2.8s linear infinite;
+}
+@keyframes intro-shimmer {
+  from {
+    background-position: 125% 0;
+  }
+  to {
+    background-position: -125% 0;
+  }
+}
+.intro-subline {
+  margin: 18px 0 26px;
+  padding-left: 0.3em;
+  font-family: 'Space Mono', ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: 0.3em;
+  color: var(--intro-cyan);
+}
+.intro-hud {
+  position: absolute;
+  width: 44px;
+  height: 44px;
+  border-color: color-mix(in srgb, var(--intro-accent) 55%, transparent);
+  border-style: solid;
+  border-width: 0;
+}
+.intro-hud-tl {
+  top: 40px;
+  left: 40px;
+  border-top-width: 1px;
+  border-left-width: 1px;
+}
+.intro-hud-tr {
+  top: 40px;
+  right: 40px;
+  border-top-width: 1px;
+  border-right-width: 1px;
+}
+.intro-hud-bl {
+  bottom: 40px;
+  left: 40px;
+  border-bottom-width: 1px;
+  border-left-width: 1px;
+}
+.intro-hud-br {
+  bottom: 40px;
+  right: 40px;
+  border-bottom-width: 1px;
+  border-right-width: 1px;
+}
+.intro-scanlines {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.035) 0,
+    rgba(255, 255, 255, 0.035) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  mix-blend-mode: overlay;
+}
+.intro-sweep {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 3px;
+  background: var(--intro-accent);
+  box-shadow: 0 0 18px 4px var(--intro-accent), 0 0 60px 12px color-mix(in srgb, var(--intro-accent) 35%, transparent);
+  animation: intro-sweep 0.55s cubic-bezier(0.55, 0, 0.45, 1) forwards;
+  pointer-events: none;
+}
+@keyframes intro-sweep {
+  from {
+    transform: translateY(-10px);
+  }
+  to {
+    transform: translateY(calc(100vh + 10px));
+  }
+}
+.intro-skip {
+  position: absolute;
+  /* Just inside the bottom-right HUD corner (40px inset + 44px) so the two never overlap. */
+  right: calc(100px + env(safe-area-inset-right));
+  bottom: calc(28px + env(safe-area-inset-bottom));
+  min-height: 44px;
+  padding: 10px 4px;
+  font-family: 'Space Mono', ui-monospace, monospace;
+  font-size: 12px;
+  letter-spacing: 0.2em;
+  color: rgba(255, 255, 255, 0.5);
+  transition: color 0.25s ease;
+}
+.intro-skip:hover {
+  color: #fff;
+}
+@media (max-width: 640px) {
+  .intro-hud-tl,
+  .intro-hud-tr {
+    top: 20px;
+  }
+  .intro-hud-bl,
+  .intro-hud-br {
+    bottom: 20px;
+  }
+  .intro-hud-tl,
+  .intro-hud-bl {
+    left: 20px;
+  }
+  .intro-hud-tr,
+  .intro-hud-br {
+    right: 20px;
+  }
+  .intro-hud {
+    width: 30px;
+    height: 30px;
+  }
+  .intro-titlebar span:last-child {
+    font-size: 9.5px;
+    letter-spacing: 0.08em;
+  }
+  .intro-screen {
+    min-height: 260px;
+    padding: 14px 14px 16px;
+  }
+  .intro-subline {
+    font-size: 9px;
+    letter-spacing: 0.18em;
+    padding-left: 0.18em;
+    max-width: 84vw;
+  }
+  .intro-skip {
+    right: calc(60px + env(safe-area-inset-right));
+    bottom: calc(8px + env(safe-area-inset-bottom));
+  }
+  .intro-title {
+    font-size: clamp(22px, 7vw, 30px);
+    letter-spacing: 0.16em;
+    padding-left: 0.16em;
+  }
+}

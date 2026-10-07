@@ -8,6 +8,8 @@ interface WordsPullUpProps {
   staggerDelay?: number;
   /** Skip the scroll-triggered reveal and animate immediately on mount. Use for above-the-fold text. */
   eager?: boolean;
+  /** Keep the words hidden until this turns false (e.g. while an intro covers the page). */
+  hold?: boolean;
 }
 
 export function splitWords(text: string): string[] {
@@ -20,10 +22,11 @@ export function WordsPullUp({
   wordClassName = '',
   staggerDelay = 0.08,
   eager = false,
+  hold = false,
 }: WordsPullUpProps) {
   const ref = useRef(null);
   const scrollInView = useInView(ref, { once: true, margin: '-100px' });
-  const isInView = eager || scrollInView;
+  const isInView = !hold && (eager || scrollInView);
   const words = splitWords(text);
 
   return (

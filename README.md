@@ -9,6 +9,7 @@ A front-end-only, single-page CV/portfolio. It has no backend, CMS or form submi
 ## Sections and features
 
 - **Navbar**: anchor links to each section, a contact button, a language toggle (VI / EN) and a mobile menu.
+- **Intro**: a full-screen opening that types a terminal boot log, shows "ACCESS GRANTED" with a light sweep, then fades into the page (about 5 s, `SKIP →` or Escape to skip). It plays once per tab session (`sessionStorage.intro_shown`) and is skipped with reduced motion or a deep link such as `#projects`. To replay it, run `sessionStorage.removeItem('intro_shown')` and reload. Timings and lines live in `src/components/intro/CinematicIntro.tsx`; the accent colour is `--intro-accent` in `src/index.css`. The effect is decorative: nothing is checked or verified.
 - **Hero**: headline with a word-by-word pull-up animation, a canvas particle/aurora background with GSAP mouse parallax, a cursor spotlight that reveals the portrait photo, and CTAs to Projects and Contact.
 - **About**: short bio, portrait with an animated glow border, and education details.
 - **Experience**: timeline of work history, animated on scroll.
