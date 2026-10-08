@@ -30,8 +30,10 @@ export function Modal({ open, onClose, title, children, size = 'md' }: ModalProp
       aria-label={title}
     >
       <div className="absolute inset-0 bg-black/70" onClick={onClose} />
+      {/* The panel is opaque, so liquid-glass-strong's 50px backdrop blur would never show: keep
+          its gradient border and drop the blur. */}
       <div
-        className={`liquid-glass-strong relative rounded-3xl bg-[#131313] w-full max-h-full flex flex-col ${
+        className={`liquid-glass-strong relative rounded-3xl bg-[#131313] [backdrop-filter:none] [-webkit-backdrop-filter:none] w-full max-h-full flex flex-col ${
           size === 'lg' ? 'max-w-4xl' : 'max-w-lg'
         }`}
       >

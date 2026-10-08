@@ -68,7 +68,7 @@ describe('Navbar', () => {
     });
 
     const skillsLinks = screen.getAllByText('Kỹ năng');
-    expect(skillsLinks[0]).toHaveAttribute('aria-current', 'true');
+    expect(skillsLinks[0].closest('a')).toHaveAttribute('aria-current', 'true');
 
     document.body.removeChild(skillsSection);
     globalThis.IntersectionObserver = originalObserver;

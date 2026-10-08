@@ -1,78 +1,365 @@
-import { useRef } from 'react';
-import type { CSSProperties } from 'react';
-import { motion, useInView } from 'framer-motion';
-import { ShieldCheck } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import type { CSSProperties, KeyboardEvent, TransitionEvent } from 'react';
+import { ArrowLeft, ArrowRight, ArrowUpRight, ShieldCheck } from 'lucide-react';
 import { useLang } from '../context/LangContext';
-import { WordsPullUp } from './ui/WordsPullUp';
 import { TechIcon, hoverColor } from './ui/techIcons';
+import { TECH_ICONS } from './ui/techIconData';
+import { FOCUS_STOPS, SCROLL_LENGTH, VAR_TARGETS, computeFrame, lerp } from './skills/cinema';
+import { archPositions } from './skills/arch';
+import './skills/skills.css';
 
-const EASE = [0.16, 1, 0.3, 1] as const;
+/** Secondary stack icons scattered over the two foreground slabs that part on scroll. */
+const SLAB_LEFT = ['HTML5', 'CSS3', 'Dart', 'Android', 'Python'];
+const SLAB_RIGHT = ['MySQL', 'Linux', 'Nginx', 'Firebase', 'JWT'];
+/** Slider holds three copies of the groups; the middle copy is the real, accessible one. */
+const SETS = 3;
+/** Flat perspective floor: rays fanning out from the horizon, rows bunching toward it. */
+const GRID_RAYS = Array.from({ length: 25 }, (_, i) => i - 12);
+const GRID_ROWS = Array.from({ length: 9 }, (_, i) => Math.round(400 * Math.pow((i + 1) / 9, 2.2)));
 
+const pad = (n: number) => String(n).padStart(2, '0');
+
+/**
+ * Skills: a cinematic pinned stage scrubbed by scroll (see skills/cinema.ts). The core stack sits
+ * on an arch under a giant serif title, two panels tell the stack and security story, and the
+ * skill groups arrive last as an infinite card slider.
+ */
 export function SkillsSection() {
   const { t } = useLang();
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: '-100px' });
+  const s = t.skills;
+  // The arch box is 2.3:1 on desktop/tablet and 1.45:1 on phones (skills.css); CSS picks the set.
+  const archSpots = archPositions(s.core.length, 2.3);
+  const archSpotsPhone = archPositions(s.core.length, 1.45);
+  const sectionRef = useRef<HTMLElement>(null);
+  const controlsRef = useRef<HTMLDivElement>(null);
+
+  const groups = s.categories;
+  const count = groups.length;
+  const total = new Set(groups.flatMap((g) => g.items)).size;
+  const [active, setActive] = useState(count);
+  const [jumping, setJumping] = useState(false);
+
+  useEffect(() => {
+    const section = sectionRef.current;
+    if (!section) return;
+    const reduced =
+      typeof window.matchMedia === 'function'
+        ? window.matchMedia('(prefers-reduced-motion: reduce)')
+        : null;
+
+    let raf = 0;
+    let visible = typeof IntersectionObserver === 'undefined';
+    let initialized = false;
+    let smooth = 0;
+    let mx = 0;
+    let my = 0;
+    let targetMx = 0;
+    let targetMy = 0;
+
+    // Each property goes to the element(s) that read it, and only when its value changed.
+    const targets: Record<string, HTMLElement[]> = {};
+    for (const [key, selector] of Object.entries(VAR_TARGETS)) {
+      targets[key] = Array.from(section.querySelectorAll<HTMLElement>(selector));
+    }
+    const written: Record<string, string> = {};
+    const arch = section.querySelector<HTMLElement>('.tech-arch');
+
+    const distance = () =>
+      Math.min(
+        Math.max(-section.getBoundingClientRect().top, 0),
+        Math.max(0, section.offsetHeight - window.innerHeight)
+      );
+
+    const update = () => {
+      raf = 0;
+      const still = reduced?.matches ?? false;
+      // All layout reads happen here, before this frame's writes.
+      const target = distance();
+      const archH = arch?.offsetHeight ?? 0;
+      smooth = !initialized || still ? target : lerp(smooth, target, 0.14);
+      initialized = true;
+      if (Math.abs(smooth - target) < 0.08) smooth = target;
+      mx = still ? 0 : lerp(mx, targetMx, 0.12);
+      my = still ? 0 : lerp(my, targetMy, 0.12);
+
+      const { vars, controlsReady } = computeFrame(smooth, mx, my, window.innerHeight, archH);
+      for (const key in vars) {
+        const value = vars[key];
+        if (written[key] === value) continue;
+        written[key] = value;
+        const els = targets[key];
+        if (els?.length) els.forEach((el) => el.style.setProperty(key, value));
+        else section.style.setProperty(key, value);
+      }
+      controlsRef.current?.classList.toggle('is-ready', controlsReady);
+
+      if (
+        !still &&
+        (Math.abs(smooth - target) > 0.08 ||
+          Math.abs(mx - targetMx) > 0.001 ||
+          Math.abs(my - targetMy) > 0.001)
+      ) {
+        tick();
+      }
+    };
+    const tick = () => {
+      if (!raf && visible) raf = requestAnimationFrame(update);
+    };
+    const onPointer = (e: PointerEvent) => {
+      targetMx = e.clientX / window.innerWidth - 0.5;
+      targetMy = e.clientY / window.innerHeight - 0.5;
+      tick();
+    };
+
+    const observer =
+      typeof IntersectionObserver === 'undefined'
+        ? null
+        : new IntersectionObserver(([entry]) => {
+            visible = entry.isIntersecting;
+            if (visible) {
+              initialized = false;
+              tick();
+            }
+          });
+    observer?.observe(section);
+
+    window.addEventListener('scroll', tick, { passive: true });
+    window.addEventListener('resize', tick);
+    window.addEventListener('pointermove', onPointer, { passive: true });
+    update();
+
+    return () => {
+      observer?.disconnect();
+      window.removeEventListener('scroll', tick);
+      window.removeEventListener('resize', tick);
+      window.removeEventListener('pointermove', onPointer);
+      cancelAnimationFrame(raf);
+    };
+  }, []);
+
+  /** Elements that only show up deep in the timeline scroll the stage there when they get focus. */
+  const scrollToStop = (stop: number) => () => {
+    const section = sectionRef.current;
+    if (!section) return;
+    const top = section.getBoundingClientRect().top + window.scrollY;
+    if (Math.abs(window.scrollY - (top + stop)) > 200) {
+      window.scrollTo({ top: top + stop, behavior: 'auto' });
+    }
+  };
+
+  const jump = (index: number) => {
+    setJumping(true);
+    setActive(index);
+    requestAnimationFrame(() => requestAnimationFrame(() => setJumping(false)));
+  };
+  const move = (dir: number) => setActive((i) => Math.min(SETS * count - 1, Math.max(0, i + dir)));
+  const normalize = (e: TransitionEvent<HTMLUListElement>) => {
+    if (e.target !== e.currentTarget) return;
+    if (active >= count * 2) jump(active - count);
+    else if (active < count) jump(active + count);
+  };
+  const onCardKey = (index: number) => (e: KeyboardEvent<HTMLLIElement>) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      setActive(index);
+    }
+  };
+
 
   return (
-    <section id="skills" aria-labelledby="skills-heading" className="bg-black py-24 md:py-32 px-6 noise-overlay">
-      <div className="max-w-5xl mx-auto" ref={ref}>
-        <h2 id="skills-heading" className="text-3xl md:text-5xl font-serif text-ink mb-16 text-center">
-          <WordsPullUp text={t.skills.heading} />
-        </h2>
+    <section
+      id="skills"
+      ref={sectionRef}
+      aria-labelledby="skills-heading"
+      className="tech"
+      style={{ '--scroll-length': `${SCROLL_LENGTH}px` } as CSSProperties}
+    >
+      <div className="tech-stage">
+        <div className="tech-world">
+          <div className="tech-sky" aria-hidden="true" />
 
-        <p className="text-white/40 text-xs uppercase tracking-widest mb-4">{t.skills.coreLabel}</p>
-        <ul aria-label={t.skills.coreLabel} className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 md:gap-4 mb-14">
-          {t.skills.core.map((name, i) => (
-            <motion.li
-              key={name}
-              className="group surface-card flex flex-col items-center justify-center gap-3 px-2 py-6 text-center"
-              style={{ '--brand': hoverColor(name) } as CSSProperties}
-              initial={{ opacity: 0, y: 24 }}
-              whileHover={{ y: -4, transition: { duration: 0.2, delay: 0 } }}
-              animate={isInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.5, delay: i * 0.05, ease: EASE }}
-            >
-              <TechIcon
-                name={name}
-                size={32}
-                className="text-white/60 transition-colors duration-300 group-hover:text-[var(--brand)]"
-              />
-              <span className="text-ink text-sm break-words max-w-full">{name}</span>
-            </motion.li>
-          ))}
-        </ul>
+          <div className="tech-back" aria-hidden="true">
+            <div className="tech-glow">
+              <i />
+              <i />
+            </div>
+            {/* Sharp grid plus a pre-blurred twin; scroll crossfades them instead of animating a
+                CSS blur, so neither layer repaints while it moves. */}
+            {[false, true].map((soft) => (
+              <svg
+                key={soft ? 'soft' : 'sharp'}
+                className={`tech-grid${soft ? ' is-soft' : ''}`}
+                aria-hidden="true"
+                viewBox="0 0 1000 400"
+                preserveAspectRatio="none"
+              >
+                {soft && (
+                  <filter id="tech-grid-soft" filterUnits="userSpaceOnUse" x="-60" y="-60" width="1120" height="520">
+                    <feGaussianBlur stdDeviation="8 12" />
+                  </filter>
+                )}
+                <g filter={soft ? 'url(#tech-grid-soft)' : undefined}>
+                  {GRID_RAYS.map((k) => (
+                    <line key={`r${k}`} x1={500 + k * 22} y1={0} x2={500 + k * 150} y2={400} />
+                  ))}
+                  {GRID_ROWS.map((y) => (
+                    <line key={`h${y}`} x1={0} y1={y} x2={1000} y2={y} />
+                  ))}
+                </g>
+              </svg>
+            ))}
+          </div>
 
-        <ul className="divide-y divide-white/5 mb-10">
-          {t.skills.categories.map((cat, i) => (
-            <motion.li
-              key={cat.label}
-              className="flex flex-col md:flex-row md:items-start gap-3 md:gap-6 py-4"
-              initial={{ opacity: 0, y: 16 }}
-              animate={isInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.5, delay: 0.3 + i * 0.06, ease: EASE }}
-            >
-              <h3 className="text-white/40 text-xs uppercase tracking-widest md:w-48 md:shrink-0 md:pt-2">
-                {cat.label}
-              </h3>
-              <ul className="flex flex-wrap gap-2">
-                {cat.items.map((item) => (
+          <div className="tech-shade" aria-hidden="true" />
+
+          <h2 id="skills-heading" className="tech-title">
+            {s.heading}
+          </h2>
+
+          <div className="tech-arch">
+            <p className="tech-arch-label">{s.coreLabel}</p>
+            <ul aria-label={s.coreLabel}>
+              {s.core.map((name, i) => {
+                const pos = archSpots[i];
+                const phone = archSpotsPhone[i];
+                return (
                   <li
-                    key={item}
-                    className="liquid-glass rounded-full px-3 py-1.5 text-xs text-white/70 inline-flex items-center gap-1.5"
+                    key={name}
+                    className="tech-tile"
+                    style={
+                      {
+                        '--brand': hoverColor(name),
+                        '--tile-left': `${pos.left}%`,
+                        '--tile-bottom': `${pos.bottom}%`,
+                        '--tile-left-phone': `${phone.left}%`,
+                        '--tile-bottom-phone': `${phone.bottom}%`,
+                      } as CSSProperties
+                    }
                   >
-                    <TechIcon name={item} size={14} />
-                    <span>{item}</span>
+                    <span className="tech-tile-icon">
+                      <TechIcon name={name} size={30} />
+                    </span>
+                    <span className="tech-tile-name">{name}</span>
                   </li>
-                ))}
-              </ul>
-            </motion.li>
-          ))}
-        </ul>
+                );
+              })}
+            </ul>
+          </div>
 
-        <p className="flex items-start gap-3 text-white/50 text-sm leading-relaxed max-w-2xl">
-          <ShieldCheck size={18} className="text-primary shrink-0 mt-0.5" aria-hidden="true" />
-          <span>{t.skills.note}</span>
-        </p>
+          <div className="tech-core" aria-hidden="true">
+            <TechIcon name="TypeScript" className="tech-core-mark" />
+          </div>
+
+          {[SLAB_LEFT, SLAB_RIGHT].map((icons, side) => (
+            <div
+              key={side}
+              className={`tech-slab ${side ? 'tech-slab-right' : 'tech-slab-left'}`}
+              aria-hidden="true"
+            >
+              {icons.map((name, i) => (
+                <span key={name} className="tech-slab-icon" style={{ '--i': i } as CSSProperties}>
+                  <TechIcon name={name} size={40} />
+                </span>
+              ))}
+            </div>
+          ))}
+        </div>
+
+        <div className="tech-intro">
+          <p>{s.intro}</p>
+          <ul className="tech-tags">
+            {s.tags.map((tag) => (
+              <li key={tag}>{tag}</li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="tech-panel tech-panel-stack">
+          <h3>{s.stackTitle}</h3>
+          <p>{s.stackText}</p>
+          <dl className="tech-facts">
+            <div>
+              <dt>{total}</dt>
+              <dd>{s.totalLabel}</dd>
+            </div>
+            <div>
+              <dt>{pad(count)}</dt>
+              <dd>{s.groupsLabel}</dd>
+            </div>
+          </dl>
+        </div>
+
+        <div className="tech-panel tech-panel-security">
+          <ShieldCheck className="tech-panel-shield" size={40} strokeWidth={1.4} aria-hidden="true" />
+          <h3>{s.securityTitle}</h3>
+          <p>{s.note}</p>
+          <a className="tech-pill-link" href={s.securityCta.href} onFocus={scrollToStop(FOCUS_STOPS.security)}>
+            <ArrowUpRight size={18} aria-hidden="true" />
+            <span>{s.securityCta.label}</span>
+          </a>
+        </div>
+
+        <div className="tech-slider" role="region" aria-labelledby="skills-groups">
+          <p id="skills-groups" className="tech-slider-label">
+            {s.sliderLabel}
+          </p>
+          <ul
+            className={`tech-track${jumping ? ' is-jumping' : ''}`}
+            style={{ '--active': active } as CSSProperties}
+            onTransitionEnd={normalize}
+          >
+            {Array.from({ length: SETS * count }, (_, index) => {
+              const group = groups[index % count];
+              const real = Math.floor(index / count) === 1;
+              const pin = group.items.find((item) => TECH_ICONS[item]);
+              return (
+                <li
+                  key={index}
+                  className={`tech-card${index === active ? ' is-active' : ''}`}
+                  role="button"
+                  tabIndex={real ? 0 : -1}
+                  aria-hidden={real ? undefined : true}
+                  aria-pressed={real ? index === active : undefined}
+                  onClick={() => setActive(index)}
+                  onKeyDown={onCardKey(index)}
+                  onFocus={real ? scrollToStop(FOCUS_STOPS.slider) : undefined}
+                >
+                  <span className="tech-card-kicker">
+                    {pad((index % count) + 1)} / {pad(count)} · {group.items.length} {s.itemsUnit}
+                  </span>
+                  {pin && (
+                    <span className="tech-card-pin" style={{ '--brand': TECH_ICONS[pin].hex } as CSSProperties}>
+                      <TechIcon name={pin} size={30} />
+                    </span>
+                  )}
+                  <h3>{group.label}</h3>
+                  <p>{group.items.join(' · ')}</p>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+
+        <div className="tech-controls" ref={controlsRef}>
+          <button
+            type="button"
+            className="tech-nav"
+            aria-label={s.prevLabel}
+            onClick={() => move(-1)}
+            onFocus={scrollToStop(FOCUS_STOPS.slider)}
+          >
+            <ArrowLeft size={20} aria-hidden="true" />
+          </button>
+          <button
+            type="button"
+            className="tech-nav"
+            aria-label={s.nextLabel}
+            onClick={() => move(1)}
+            onFocus={scrollToStop(FOCUS_STOPS.slider)}
+          >
+            <ArrowRight size={20} aria-hidden="true" />
+          </button>
+        </div>
       </div>
     </section>
   );

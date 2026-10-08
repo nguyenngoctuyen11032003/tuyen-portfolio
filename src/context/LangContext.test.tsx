@@ -22,12 +22,12 @@ describe('LangContext', () => {
     );
 
     expect(screen.getByTestId('lang').textContent).toBe('vi');
-    expect(screen.getByTestId('headline').textContent).toContain('Nguyễn Ngọc Tuyền');
+    expect(screen.getByTestId('headline').textContent).toContain('đáng tin cậy');
 
     fireEvent.click(screen.getByText('toggle'));
 
     expect(screen.getByTestId('lang').textContent).toBe('en');
-    expect(screen.getByTestId('headline').textContent).toContain('Nguyễn Ngọc Tuyền');
+    expect(screen.getByTestId('headline').textContent).toContain('rely on');
   });
 
   it('throws when useLang is called outside a LangProvider', () => {

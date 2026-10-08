@@ -53,12 +53,48 @@ export interface CertificationItem {
   skills?: string[];
 }
 
+export type ArtifactIcon = 'material' | 'finish' | 'form' | 'mesh' | 'contrast' | 'wind';
+
+export interface ArtifactItem {
+  /** Full display name. */
+  name: string;
+  /** Short name for the tabs. */
+  short: string;
+  /** Material line, e.g. "Bạc đậu · mỏ mạ vàng". */
+  material: string;
+  tags: string[];
+  description: string;
+  traits: { icon: ArtifactIcon; label: string; value: string }[];
+  highlight: { icon: ArtifactIcon; text: string };
+  caption: string;
+  closeUp: string;
+  featuredTitle: string;
+  featuredText: string;
+}
+
 export interface Content {
   nav: {
     links: { label: string; href: string }[];
     contactCta: string;
+    /** Labels for the header's dropdown menus. */
+    menu: {
+      profile: string;
+      work: string;
+      connect: string;
+      /** One row per profile section, in page order. */
+      profileItems: { href: string; label: string; desc: string }[];
+      workAll: string;
+      workArchive: string;
+      workArtifacts: string;
+      /** Descriptions for GitHub, LinkedIn, CV and email, in that order. */
+      connectDesc: [string, string, string, string];
+      cvLabel: string;
+    };
   };
   hero: {
+    badge: string;
+    /** Rendered as the h1, split into two display lines after the first word. */
+    name: string;
     headline: string;
     accent: string;
     subheading: string;
@@ -66,7 +102,17 @@ export interface Content {
     ctaContact: string;
     ctaCv: string;
     ctaGithub: string;
-    badge: string;
+    /** City shown with the live local time on the portrait chip. */
+    city: string;
+    /** Hint beside the 3D figure on mouse devices. */
+    turnHint: string;
+    /** Shown while the 3D model downloads. */
+    loadingLabel: string;
+    /** Accessible description of the 3D figure. */
+    figureAlt: string;
+    /** Alt text of the illustrated fallback shown without WebGL. */
+    portraitAlt: string;
+    statsLabel: string;
     stats: { value: string; label: string }[];
   };
   about: {
@@ -81,6 +127,14 @@ export interface Content {
     educationSchool: string;
     educationDegree: string;
     educationDates: string;
+    /** Giant display title in the About layout. */
+    title: string;
+    degreeLabel: string;
+    periodLabel: string;
+    /** Caption above the portal, e.g. "Next:". */
+    nextLabel: string;
+    /** Label beside the pointer while hovering the portal. */
+    enterLabel: string;
   };
   experience: {
     eyebrow: string;
@@ -100,6 +154,19 @@ export interface Content {
     core: string[];
     categories: SkillCategory[];
     note: string;
+    /** Cinematic scroll stage (SkillsSection.tsx). */
+    intro: string;
+    tags: string[];
+    stackTitle: string;
+    stackText: string;
+    totalLabel: string;
+    groupsLabel: string;
+    securityTitle: string;
+    securityCta: { label: string; href: string };
+    sliderLabel: string;
+    prevLabel: string;
+    nextLabel: string;
+    itemsUnit: string;
   };
   projects: {
     eyebrow: string;
@@ -129,6 +196,32 @@ export interface Content {
     shots: string;
     projects: string;
     listLink: string;
+  };
+  /** 3D silver-filigree artifacts from the heritage digitization project. */
+  artifacts: {
+    brand: string;
+    source: string;
+    nav: { project: string; projectSub: string; eagle: string; boat: string; oneItem: string; tour: string; tourSub: string };
+    featuredEyebrow: string;
+    featuredLink: string;
+    tabsLabel: string;
+    counterLabel: string;
+    prev: string;
+    next: string;
+    hint: string;
+    loading: string;
+    stageLabel: string;
+    zoomIn: string;
+    zoomOut: string;
+    expand: string;
+    light: string;
+    turnLeft: string;
+    turnFull: string;
+    turnRight: string;
+    traitsHeading: string;
+    highlightHeading: string;
+    closeUpTitle: string;
+    items: ArtifactItem[];
   };
   certifications: {
     eyebrow: string;
@@ -242,22 +335,46 @@ export const content: Record<Lang, Content> = {
         { label: 'Dự án', href: '#projects' },
       ],
       contactCta: 'Liên hệ',
+      menu: {
+        profile: 'Hồ sơ',
+        work: 'Dự án',
+        connect: 'Kết nối',
+        profileItems: [
+          { href: '#about', label: 'Về tôi', desc: 'Kỹ sư CNTT tại Hà Nội, từ yêu cầu đến sản phẩm.' },
+          { href: '#experience', label: 'Kinh nghiệm', desc: 'Hơn 2 năm xây dựng hệ thống doanh nghiệp.' },
+          { href: '#skills', label: 'Kỹ năng', desc: 'NestJS, Next.js, React, Flutter, PostgreSQL.' },
+          { href: '#certifications', label: 'Chứng chỉ', desc: 'Oracle Cloud Infrastructure 2025.' },
+        ],
+        workAll: 'Tất cả dự án',
+        workArchive: 'Kho ảnh 3D',
+        workArtifacts: 'Cổ vật 3D',
+        connectDesc: ['Mã nguồn và case study', 'Hồ sơ chuyên môn', 'Bản PDF mới nhất', 'Gửi email trực tiếp'],
+        cvLabel: 'Tải CV',
+      },
     },
     hero: {
+      badge: 'Đang làm việc tại ICS',
+      name: 'Nguyễn Ngọc Tuyền',
       headline:
-        'Tôi là Nguyễn Ngọc Tuyền — lập trình viên full-stack xây dựng hệ thống doanh nghiệp đáng tin cậy.',
+        'Tôi xây dựng những hệ thống đáng tin cậy cho doanh nghiệp — từ cơ sở dữ liệu đến giao diện.',
       accent: 'đáng tin cậy',
       subheading:
         'Kỹ sư CNTT · Lập trình viên Full-Stack tại Công ty CP An ninh mạng Quốc tế ICS · Hà Nội',
       ctaProjects: 'Xem dự án',
-      ctaContact: 'Liên hệ',
+      ctaContact: 'Liên hệ với tôi',
       ctaCv: 'Tải CV',
       ctaGithub: 'GitHub',
-      badge: 'Đang làm tại ICS',
+      city: 'Hà Nội',
+      turnHint: 'Di chuột để xoay',
+      loadingLabel: 'Đang tải mô hình 3D',
+      figureAlt: 'Mô hình 3D toàn thân của Nguyễn Ngọc Tuyền, xoay theo chuyển động của chuột',
+      portraitAlt:
+        'Tranh minh hoạ Nguyễn Ngọc Tuyền uống cà phê trong phòng làm việc buổi tối, phía sau là các màn hình hiển thị mã nguồn',
+      statsLabel: 'Số liệu nổi bật',
       stats: [
         { value: '2+', label: 'năm kinh nghiệm CNTT' },
         { value: '9', label: 'dự án tiêu biểu' },
-        { value: '3', label: 'công ty đã làm việc' },
+        { value: '3', label: 'công ty đã gắn bó' },
       ],
     },
     about: {
@@ -274,6 +391,11 @@ export const content: Record<Lang, Content> = {
       educationSchool: 'Trường Đại học Công Nghệ Đông Á',
       educationDegree: 'Kỹ sư Công nghệ thông tin (hệ chính quy)',
       educationDates: '09/2021 – 06/2025',
+      title: 'Về tôi',
+      degreeLabel: 'Bằng cấp',
+      periodLabel: 'Thời gian',
+      nextLabel: 'Tiếp theo:',
+      enterLabel: 'Đi tiếp',
     },
     experience: {
       eyebrow: 'Kinh nghiệm',
@@ -340,6 +462,18 @@ export const content: Record<Lang, Content> = {
         { label: 'Quản lý mã nguồn', items: CATEGORY_ITEMS.vcs },
       ],
       note: 'Phát triển có ý thức bảo mật: xác thực, phân quyền và JWT, hình thành từ môi trường làm việc tại công ty an ninh mạng.',
+      intro: 'Một stack TypeScript xuyên suốt, từ API, giao diện web đến ứng dụng di động, chạy trên PostgreSQL, Redis và Docker.',
+      tags: ['NestJS · Next.js', 'Flutter', 'PostgreSQL · Redis'],
+      stackTitle: 'Một ngôn ngữ, mọi tầng.',
+      stackText: 'TypeScript nối API NestJS với giao diện React và Next.js; Flutter cho di động; PostgreSQL và Redis giữ dữ liệu.',
+      totalLabel: 'Công nghệ & công cụ',
+      groupsLabel: 'Nhóm kỹ năng',
+      securityTitle: 'Bảo mật là mặc định.',
+      securityCta: { label: 'Xem chứng chỉ', href: '#certifications' },
+      sliderLabel: 'Các nhóm kỹ năng',
+      prevLabel: 'Nhóm trước',
+      nextLabel: 'Nhóm tiếp theo',
+      itemsUnit: 'công nghệ',
     },
     projects: {
       eyebrow: 'Dự án chọn lọc',
@@ -566,6 +700,79 @@ export const content: Record<Lang, Content> = {
       projects: 'dự án',
       listLink: 'Xem danh sách dự án',
     },
+    artifacts: {
+      brand: 'Atlas Đậu Bạc',
+      source: 'Dự án số hoá di tích',
+      nav: {
+        project: 'Dự án',
+        projectSub: 'Số hoá di tích xã phường',
+        eagle: 'Tượng linh vật',
+        boat: 'Mô hình thuyền',
+        oneItem: '1 hiện vật',
+        tour: 'Tour VR360',
+        tourSub: 'Đọc case study',
+      },
+      featuredEyebrow: 'Hiện vật nổi bật',
+      featuredLink: 'Xem case study',
+      tabsLabel: 'Chọn hiện vật',
+      counterLabel: 'Hiện vật',
+      prev: 'Hiện vật trước',
+      next: 'Hiện vật tiếp theo',
+      hint: 'Kéo để xoay · Ctrl + cuộn để phóng to',
+      loading: 'Đang chuẩn bị hiện vật…',
+      stageLabel:
+        'Mô hình 3D. Kéo hoặc dùng phím mũi tên để xoay, Ctrl + cuộn, chụm hai ngón hoặc phím + và − để phóng to, nhấp đúp hoặc phím 0 để về góc nhìn ban đầu.',
+      zoomIn: 'Phóng to',
+      zoomOut: 'Thu nhỏ',
+      expand: 'Chế độ trưng bày toàn khung',
+      light: 'Đổi ánh sáng phòng trưng bày',
+      turnLeft: 'Xoay trái 90°',
+      turnFull: 'Xoay trọn 360°',
+      turnRight: 'Xoay phải 90°',
+      traitsHeading: 'Đặc điểm',
+      highlightHeading: 'Điểm nhấn',
+      closeUpTitle: 'Cận cảnh chi tiết',
+      items: [
+        {
+          name: 'Tượng đầu chim đại bàng đậu bạc, mỏ mạ vàng',
+          short: 'Đầu đại bàng',
+          material: 'Bạc đậu · mỏ mạ vàng',
+          tags: ['Đậu bạc', 'Mỏ mạ vàng', 'Tượng đầu đại bàng'],
+          description:
+            'Đầu chim đại bàng uy nghi, từng chiếc lông được kết từ sợi bạc đậu, riêng chiếc mỏ được mạ vàng để làm điểm nhấn — sự tương phản giữa sắc bạc và sắc vàng làm nên thần thái mạnh mẽ cho tác phẩm.',
+          traits: [
+            { icon: 'material', label: 'Chất liệu', value: 'Bạc đậu' },
+            { icon: 'finish', label: 'Hoàn thiện', value: 'Mỏ mạ vàng' },
+            { icon: 'form', label: 'Loại hình', value: 'Tượng đầu đại bàng' },
+            { icon: 'mesh', label: 'Số hoá', value: '3D · ~220k tam giác' },
+          ],
+          highlight: { icon: 'contrast', text: 'Sắc vàng của chiếc mỏ nổi bật trên nền lông bạc.' },
+          caption: 'Lông bạc, mỏ vàng — một ánh nhìn uy nghi.',
+          closeUp: 'Từng chiếc lông kết từ sợi bạc đậu; chiếc mỏ mạ vàng là điểm sáng giữa nền bạc.',
+          featuredTitle: 'Ánh vàng trên nền bạc.',
+          featuredText: 'Bộ lông kết từ sợi bạc đậu, chiếc mỏ mạ vàng làm điểm nhấn.',
+        },
+        {
+          name: 'Thuyền buồm đậu bạc mạ vàng',
+          short: 'Thuyền buồm',
+          material: 'Bạc đậu · mạ vàng',
+          tags: ['Đậu bạc', 'Mạ vàng', 'Mô hình thuyền buồm'],
+          description:
+            'Con thuyền buồm ba cột với cánh buồm, dây buồm và lan can được kết bằng những sợi bạc se nhỏ, uốn ghép tỉ mỉ rồi mạ vàng. Hình ảnh thuyền buồm thuận gió thường gửi gắm lời chúc làm ăn hanh thông, thuận buồm xuôi gió.',
+          traits: [
+            { icon: 'material', label: 'Chất liệu', value: 'Bạc đậu' },
+            { icon: 'finish', label: 'Hoàn thiện', value: 'Mạ vàng' },
+            { icon: 'form', label: 'Loại hình', value: 'Thuyền buồm ba cột' },
+            { icon: 'mesh', label: 'Số hoá', value: '3D · ~250k tam giác' },
+          ],
+          highlight: { icon: 'wind', text: 'Lời chúc làm ăn hanh thông, thuận buồm xuôi gió.' },
+          caption: 'Thuận buồm xuôi gió, từng sợi bạc dệt nên cánh buồm.',
+          closeUp: 'Cánh buồm và dây buồm là những sợi bạc se nhỏ, uốn ghép tỉ mỉ rồi mạ vàng.',
+          featuredTitle: 'Thuận buồm xuôi gió.',
+          featuredText: 'Ba cột buồm, từng sợi bạc se nhỏ uốn ghép rồi mạ vàng.',
+        },
+      ],
+    },
     certifications: {
       eyebrow: 'Chứng chỉ',
       heading: 'Chứng chỉ',
@@ -634,22 +841,45 @@ export const content: Record<Lang, Content> = {
         { label: 'Projects', href: '#projects' },
       ],
       contactCta: 'Contact',
+      menu: {
+        profile: 'Profile',
+        work: 'Work',
+        connect: 'Connect',
+        profileItems: [
+          { href: '#about', label: 'About', desc: 'IT engineer in Hanoi, from requirements to shipped software.' },
+          { href: '#experience', label: 'Experience', desc: '2+ years building enterprise systems.' },
+          { href: '#skills', label: 'Skills', desc: 'NestJS, Next.js, React, Flutter, PostgreSQL.' },
+          { href: '#certifications', label: 'Certifications', desc: 'Oracle Cloud Infrastructure, 2025.' },
+        ],
+        workAll: 'All projects',
+        workArchive: '3D archive',
+        workArtifacts: '3D artifacts',
+        connectDesc: ['Code and case studies', 'Professional profile', 'Latest PDF version', 'Write to me directly'],
+        cvLabel: 'Download CV',
+      },
     },
     hero: {
-      headline:
-        "I'm Nguyễn Ngọc Tuyền — a full-stack developer building enterprise systems teams rely on.",
+      badge: 'Currently at ICS',
+      name: 'Nguyen Ngoc Tuyen',
+      headline: 'I build enterprise systems that teams can rely on — from database to interface.',
       accent: 'rely on',
       subheading:
         'IT Engineer · Full-Stack Developer at ICS International Cybersecurity JSC · Hanoi',
       ctaProjects: 'View projects',
-      ctaContact: 'Contact',
+      ctaContact: 'Get in touch',
       ctaCv: 'Download CV',
       ctaGithub: 'GitHub',
-      badge: 'Currently at ICS',
+      city: 'Hanoi',
+      turnHint: 'Move your mouse to turn',
+      loadingLabel: 'Loading 3D model',
+      figureAlt: 'Full-body 3D model of Nguyen Ngoc Tuyen that turns as you move your mouse',
+      portraitAlt:
+        'Illustrated portrait of Nguyen Ngoc Tuyen drinking coffee in a night-time workspace, with code on the monitors behind',
+      statsLabel: 'Key figures',
       stats: [
         { value: '2+', label: 'years of IT experience' },
         { value: '9', label: 'featured projects' },
-        { value: '3', label: 'companies' },
+        { value: '3', label: 'companies worked at' },
       ],
     },
     about: {
@@ -666,6 +896,11 @@ export const content: Record<Lang, Content> = {
       educationSchool: 'Đông Á University of Technology',
       educationDegree: 'B.Eng. in Information Technology (full-time)',
       educationDates: '09/2021 – 06/2025',
+      title: 'About',
+      degreeLabel: 'Degree',
+      periodLabel: 'Period',
+      nextLabel: 'Next:',
+      enterLabel: 'Enter',
     },
     experience: {
       eyebrow: 'Experience',
@@ -732,6 +967,18 @@ export const content: Record<Lang, Content> = {
         { label: 'Version Control', items: CATEGORY_ITEMS.vcs },
       ],
       note: 'Security-aware development: authentication, authorization, and JWT, shaped by working at a cybersecurity company.',
+      intro: 'One TypeScript stack end to end, from APIs and web interfaces to mobile apps, running on PostgreSQL, Redis and Docker.',
+      tags: ['NestJS · Next.js', 'Flutter', 'PostgreSQL · Redis'],
+      stackTitle: 'One language, every layer.',
+      stackText: 'TypeScript links NestJS APIs to React and Next.js interfaces; Flutter covers mobile; PostgreSQL and Redis hold the data.',
+      totalLabel: 'Technologies & tools',
+      groupsLabel: 'Skill groups',
+      securityTitle: 'Security is built in.',
+      securityCta: { label: 'See certifications', href: '#certifications' },
+      sliderLabel: 'Skill groups',
+      prevLabel: 'Previous group',
+      nextLabel: 'Next group',
+      itemsUnit: 'technologies',
     },
     projects: {
       eyebrow: 'Selected work',
@@ -957,6 +1204,79 @@ export const content: Record<Lang, Content> = {
       shots: 'shots',
       projects: 'projects',
       listLink: 'See the project list',
+    },
+    artifacts: {
+      brand: 'Filigree Atlas',
+      source: 'Heritage digitization project',
+      nav: {
+        project: 'Project',
+        projectSub: 'Heritage site digitization',
+        eagle: 'Sculptures',
+        boat: 'Ship models',
+        oneItem: '1 artifact',
+        tour: 'VR360 tour',
+        tourSub: 'Read the case study',
+      },
+      featuredEyebrow: 'Featured artifact',
+      featuredLink: 'Read the case study',
+      tabsLabel: 'Choose an artifact',
+      counterLabel: 'Artifact',
+      prev: 'Previous artifact',
+      next: 'Next artifact',
+      hint: 'Drag to turn · Ctrl + scroll to zoom',
+      loading: 'Preparing the artifact…',
+      stageLabel:
+        '3D model. Drag or use the arrow keys to turn; Ctrl + scroll, pinch or the + and − keys to zoom; double-click or press 0 to reset the view.',
+      zoomIn: 'Zoom in',
+      zoomOut: 'Zoom out',
+      expand: 'Full-frame display mode',
+      light: 'Switch gallery lighting',
+      turnLeft: 'Turn left 90°',
+      turnFull: 'Turn a full 360°',
+      turnRight: 'Turn right 90°',
+      traitsHeading: 'Key traits',
+      highlightHeading: 'Highlight',
+      closeUpTitle: 'Close-up detail',
+      items: [
+        {
+          name: 'Silver filigree eagle head, gilded beak',
+          short: 'Eagle head',
+          material: 'Silver filigree · gilded beak',
+          tags: ['Silver filigree', 'Gilded beak', 'Eagle head sculpture'],
+          description:
+            'A majestic eagle head: every feather is built from silver filigree wire, while the beak alone is gilded as an accent — the contrast between silver and gold gives the piece its commanding presence.',
+          traits: [
+            { icon: 'material', label: 'Material', value: 'Silver filigree' },
+            { icon: 'finish', label: 'Finish', value: 'Gilded beak' },
+            { icon: 'form', label: 'Form', value: 'Eagle head sculpture' },
+            { icon: 'mesh', label: 'Digital', value: '3D · ~220k triangles' },
+          ],
+          highlight: { icon: 'contrast', text: 'A gold beak set against silver plumage.' },
+          caption: 'Silver feathers, a golden beak — a commanding gaze.',
+          closeUp: 'Each feather is formed from silver filigree; the gilded beak is the bright point on the silver.',
+          featuredTitle: 'Gold against silver.',
+          featuredText: 'Plumage of silver filigree, with a gilded beak as the accent.',
+        },
+        {
+          name: 'Gilded silver filigree sailing ship',
+          short: 'Sailing ship',
+          material: 'Silver filigree · gold-plated',
+          tags: ['Silver filigree', 'Gold-plated', 'Sailing ship model'],
+          description:
+            'A three-masted sailing ship whose sails, rigging and railings are made from finely twisted silver wire, meticulously bent and joined, then gold-plated. A ship running before the wind carries the wish for smooth, prosperous business — fair winds and following seas.',
+          traits: [
+            { icon: 'material', label: 'Material', value: 'Silver filigree' },
+            { icon: 'finish', label: 'Finish', value: 'Gold-plated' },
+            { icon: 'form', label: 'Form', value: 'Three-masted ship' },
+            { icon: 'mesh', label: 'Digital', value: '3D · ~250k triangles' },
+          ],
+          highlight: { icon: 'wind', text: 'A wish for prosperous business and fair winds.' },
+          caption: 'Fair winds — sails woven from threads of silver.',
+          closeUp: 'Sails and rigging are finely twisted silver wire, bent and joined by hand, then gold-plated.',
+          featuredTitle: 'Fair winds ahead.',
+          featuredText: 'Three masts, each silver thread twisted, joined and gold-plated.',
+        },
+      ],
     },
     certifications: {
       eyebrow: 'Certifications',

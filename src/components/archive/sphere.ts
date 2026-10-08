@@ -89,6 +89,43 @@ export function depthAfterRotation(point: SpherePoint, yawDeg: number, pitchDeg:
   return -point.x * Math.sin(a) + zAfterPitch * Math.cos(a);
 }
 
+/**
+ * Full position (unit sphere, CSS axes: x right, y down, z toward the viewer) of a point after
+ * `rotateY(yaw) rotateX(pitch)`; `z` equals {@link depthAfterRotation}.
+ */
+export function rotatePoint(point: SpherePoint, yawDeg: number, pitchDeg: number) {
+  const a = yawDeg / DEG;
+  const b = pitchDeg / DEG;
+  const y = -point.y;
+  const yAfterPitch = y * Math.cos(b) - point.z * Math.sin(b);
+  const zAfterPitch = y * Math.sin(b) + point.z * Math.cos(b);
+  return {
+    x: point.x * Math.cos(a) + zAfterPitch * Math.sin(a),
+    y: yAfterPitch,
+    z: -point.x * Math.sin(a) + zAfterPitch * Math.cos(a),
+  };
+}
+
+/**
+ * How much a front card overlaps the title at the sphere's centre (0 none .. 1 fully over it).
+ * `halfW`/`halfH` are the title's half-size and `cardW`/`cardH` the card size, all in px; `R` is
+ * the radius. Only cards on the near half count, ramping in so they fade rather than pop.
+ */
+export function titleOverlap(
+  p: { x: number; y: number; z: number },
+  R: number,
+  halfW: number,
+  halfH: number,
+  cardW: number,
+  cardH: number
+): number {
+  const front = Math.min(1, Math.max(0, (p.z - 0.15) / 0.35));
+  if (!front) return 0;
+  const ox = Math.min(1, Math.max(0, (halfW + cardW / 2 - Math.abs(p.x * R)) / (cardW * 0.6)));
+  const oy = Math.min(1, Math.max(0, (halfH + cardH / 2 - Math.abs(p.y * R)) / (cardH * 0.6)));
+  return front * ox * oy;
+}
+
 /** Opacity of the black wash over a card: far cards sink into the dark, near ones stay clear. */
 export function depthDim(depth: number, shade: number): number {
   const base = 0.14 + 0.86 * Math.pow((depth + 1) / 2, 0.85);

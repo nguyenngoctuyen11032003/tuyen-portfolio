@@ -27,24 +27,6 @@ button:focus-visible {
   border-radius: inherit;
 }
 
-.skip-link {
-  position: absolute;
-  top: -100%;
-  left: 1rem;
-  z-index: 100;
-  background: #34d399;
-  color: #000;
-  font-weight: 600;
-  font-size: 0.875rem;
-  padding: 0.6rem 1.1rem;
-  border-radius: 999px;
-  transition: top 0.2s ease;
-}
-
-.skip-link:focus {
-  top: 1rem;
-}
-
 @keyframes avatar-glow-spin {
   to {
     transform: rotate(360deg);
@@ -489,11 +471,12 @@ button:focus-visible {
 .cursor-dot.on {
   opacity: 1;
 }
+/* Over targets it opens into a hollow ring, so it never sits on top of the text it points at. */
 .cursor-dot.wide {
   width: 52px;
   height: 52px;
   margin: -26px 0 0 -26px;
-  background: rgba(244, 241, 234, 0.14);
+  background: transparent;
   border-color: rgba(244, 241, 234, 0.75);
 }
 
@@ -551,15 +534,16 @@ button:focus-visible {
   font-style: italic;
   font-weight: 400;
   font-size: clamp(46px, 8.4vw, 132px);
-  line-height: 0.95;
+  /* Room between lines for Vietnamese stacked marks (ề, ầ) under the line above's descenders. */
+  line-height: 1.2;
   letter-spacing: -0.02em;
 }
 /* WordsPullUp clips each word to its line box; give big italic glyphs room for accents,
    descenders and the right-hand overhang without shifting the layout. */
 .outro-heading [aria-hidden] > span {
   /* Italic g/y/đ swash past the left edge and below the baseline, so pad every side. */
-  padding: 0.16em 0.1em 0.26em 0.18em;
-  margin: -0.16em 0.15em -0.26em -0.18em;
+  padding: 0.32em 0.1em 0.26em 0.18em;
+  margin: -0.32em 0.15em -0.26em -0.18em;
 }
 .outro-meta {
   display: flex;
@@ -643,6 +627,12 @@ button:focus-visible {
     width: auto;
     height: 88px;
     font-size: clamp(24px, 7vw, 32px);
+  }
+}
+/* Portrait screens: a bigger heading balances the tall gap above the pill. */
+@media (max-width: 1100px) and (orientation: portrait) {
+  .outro-heading {
+    font-size: clamp(52px, 13.5vw, 120px);
   }
 }
 @media (max-height: 520px) and (orientation: landscape) {
@@ -980,7 +970,12 @@ button:focus-visible {
   background-size: 200% 200%;
   opacity: 0;
   transition: opacity 0.35s ease;
-  animation: gradient-shift 6s ease infinite;
+  /* background-position repaints every frame, so it only runs while the ring is visible. */
+  animation: gradient-shift 6s ease infinite paused;
+}
+.gradient-ring-btn:hover::before,
+.gradient-ring-btn:focus-visible::before {
+  animation-play-state: running;
 }
 .gradient-ring-btn > span {
   position: relative;
@@ -1024,11 +1019,14 @@ button:focus-visible {
   object-fit: cover;
   object-position: top center;
   opacity: 0;
+  transform: scale(1.05);
   transition: opacity 1s ease-in-out;
-  animation: stage-bob 3s ease-in-out infinite;
+  /* Only the visible shot bobs; a paused one holds its pose while it fades, so nothing jumps. */
+  animation: stage-bob 3s ease-in-out infinite paused;
 }
 .stage-shot.is-active {
   opacity: 1;
+  animation-play-state: running;
 }
 .stage-shade {
   position: absolute;
@@ -1172,8 +1170,9 @@ button:focus-visible {
   padding: 4px 10px;
   border-radius: 999px;
   border: 1px solid rgba(255, 255, 255, 0.15);
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(6px);
+  /* Denser fill instead of a backdrop blur: the tile scales with scroll, which would re-blur it
+     every frame. */
+  background: rgba(0, 0, 0, 0.74);
   font-size: 11px;
   color: rgba(255, 255, 255, 0.85);
   transition: opacity 0.3s ease;
@@ -1203,12 +1202,17 @@ button:focus-visible {
   border-radius: 999px;
   background: var(--accent-gradient);
   background-size: 200% 200%;
-  animation: gradient-shift 6s ease infinite;
+  /* Repaints every frame: run only while the pill is shown, not on every hidden tile. */
+  animation: gradient-shift 6s ease infinite paused;
   transform: translateY(8px);
   transition: transform 0.45s cubic-bezier(0.22, 0.61, 0.36, 1);
 }
 .bento-card:hover .bento-pill {
   transform: none;
+}
+.bento-card:hover .bento-pill,
+.bento-card:focus-within .bento-pill {
+  animation-play-state: running;
 }
 .bento-pill-inner {
   display: block;

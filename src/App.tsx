@@ -10,6 +10,7 @@ import { ExperienceSection } from './components/ExperienceSection';
 import { SkillsSection } from './components/SkillsSection';
 import { ArchiveSphere } from './components/archive/ArchiveSphere';
 import { ProjectsSection } from './components/ProjectsSection';
+import { ArtifactAtlas } from './components/artifacts/ArtifactAtlas';
 import { CertificationsSection } from './components/CertificationsSection';
 import { ContactSection } from './components/ContactSection';
 import { CursorDot } from './components/ui/CursorDot';
@@ -30,6 +31,7 @@ function App() {
             <SkillsSection />
             <ArchiveSphere />
             <ProjectsSection />
+            <ArtifactAtlas />
             <CertificationsSection />
             <ContactSection />
           </main>

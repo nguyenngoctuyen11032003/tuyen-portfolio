@@ -24,24 +24,37 @@ function useOutro(sectionRef: React.RefObject<HTMLElement | null>) {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     section.classList.add('is-scrubbed');
 
+    // Scrubbed by scroll alone: one update per frame after a scroll or resize while on screen,
+    // nothing at all while the page sits still.
     let raf = 0;
     let visible = false;
+    let written = '';
     const frame = () => {
+      raf = 0;
       const rect = section.getBoundingClientRect();
       const travel = rect.height - window.innerHeight;
       const { overlay, pill, footer } = outroStages(travel > 0 ? -rect.top / travel : 1);
+      const next = `${overlay.toFixed(3)}|${pill.toFixed(3)}|${footer.toFixed(3)}`;
+      if (next === written) return;
+      written = next;
       section.style.setProperty('--overlay', overlay.toFixed(3));
       section.style.setProperty('--pill', pill.toFixed(3));
       section.style.setProperty('--foot', footer.toFixed(3));
-      raf = visible ? requestAnimationFrame(frame) : 0;
+    };
+    const schedule = () => {
+      if (!raf && visible) raf = requestAnimationFrame(frame);
     };
     const observer = new IntersectionObserver(([entry]) => {
       visible = entry.isIntersecting;
-      if (visible && !raf) raf = requestAnimationFrame(frame);
+      schedule();
     });
     observer.observe(section);
+    window.addEventListener('scroll', schedule, { passive: true });
+    window.addEventListener('resize', schedule);
     return () => {
       observer.disconnect();
+      window.removeEventListener('scroll', schedule);
+      window.removeEventListener('resize', schedule);
       cancelAnimationFrame(raf);
       section.classList.remove('is-scrubbed');
     };

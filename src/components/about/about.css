@@ -1,0 +1,331 @@
+/* ---------------------------------------------------------------------------
+   About (AboutSection.tsx). Layout borrowed from a "portal" landing page: the
+   real <img> inside .about-portal is invisible — the canvas samples it and
+   paints a tilting rounded window over a stationary photo. Section list on the
+   left, giant title bottom-left, facts bottom-right. .is-revealed plays the
+   entrance; .is-travelling blurs the chrome while the window fills the section.
+   ------------------------------------------------------------------------ */
+/* The navbar floats over the section's own top space, so no global scroll offset. */
+section.about[id] {
+  scroll-margin-top: 0;
+}
+.about {
+  --about-gutter: clamp(24px, 3.2vw, 48px);
+  position: relative;
+  overflow: hidden;
+  background: #070707;
+  min-height: max(100svh, 820px);
+}
+.about-ambient,
+.about-shade,
+.about-canvas {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.about-ambient {
+  background-size: cover;
+  background-position: center;
+  filter: blur(70px) saturate(1.3) brightness(0.32);
+  transform: scale(1.4);
+  opacity: 0.7;
+}
+.about-shade {
+  z-index: 1;
+  background:
+    radial-gradient(60% 50% at 50% 42%, rgba(52, 211, 153, 0.08), transparent 70%),
+    linear-gradient(to bottom, #000 0%, transparent 18%, transparent 52%, rgba(0, 0, 0, 0.88) 100%);
+}
+.about-canvas {
+  z-index: 3;
+}
+.about-chrome {
+  position: absolute;
+  z-index: 4;
+  transition: opacity 0.45s ease, filter 0.45s ease;
+}
+.about.is-travelling .about-chrome {
+  opacity: 0;
+  filter: blur(8px);
+  pointer-events: none;
+}
+
+/* Section list */
+.about-list {
+  left: var(--about-gutter);
+  top: 50%;
+  transform: translateY(-43%);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 16px;
+}
+.about-list-item {
+  display: flex;
+  align-items: center;
+  min-height: 20px;
+  color: rgba(244, 241, 234, 0.6);
+  transition: color 0.2s ease;
+}
+.about-list-item:hover {
+  color: #f4f1ea;
+}
+.about-list-item.active {
+  gap: 8px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #f4f1ea;
+}
+.about-list-item.active::before {
+  content: '';
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #34d399;
+  box-shadow: 0 0 16px rgba(52, 211, 153, 0.7);
+}
+
+/* Intro copy, top-right */
+.about-intro {
+  right: var(--about-gutter);
+  top: clamp(116px, 15vh, 148px);
+  width: min(430px, 31vw);
+}
+.about-eyebrow {
+  margin-bottom: 14px;
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+/* Portal */
+.about-portal-wrap {
+  left: 50%;
+  top: 50%;
+  width: min(320px, 26vw);
+  transform: translate(-50%, -54%);
+}
+.about-portal-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  font-size: 15px;
+  color: rgba(244, 241, 234, 0.75);
+}
+.about-portal-heading strong {
+  margin-left: 6px;
+  font-size: 17px;
+  font-weight: 600;
+  color: #f4f1ea;
+}
+.about-portal {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 320 / 350;
+  padding: 0;
+  border: 0;
+  border-radius: 90px;
+  background: transparent;
+  cursor: pointer;
+}
+.about-portal img {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  visibility: hidden;
+  pointer-events: none;
+}
+/* No canvas: fall back to the plain photo in the window shape. */
+.about--flat .about-portal {
+  overflow: hidden;
+}
+.about--flat .about-portal img {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  visibility: visible;
+}
+
+/* Giant title + facts */
+.about-bottom {
+  left: var(--about-gutter);
+  right: var(--about-gutter);
+  bottom: clamp(24px, 3vh, 34px);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 40px;
+}
+.about-title {
+  margin: 0 0 -0.04em;
+  font-family: Oswald, 'Arial Narrow', sans-serif;
+  font-weight: 500;
+  font-size: clamp(110px, 15.5vw, 236px);
+  line-height: 0.78;
+  letter-spacing: -0.01em;
+  color: #f4f1ea;
+  white-space: nowrap;
+}
+.about-facts {
+  width: min(440px, 34vw);
+  margin: 0;
+  font-size: 15px;
+}
+.about-fact {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 18px;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.4);
+}
+.about-fact:last-child {
+  border-bottom: 0;
+}
+.about-fact dt {
+  font-weight: 600;
+  color: #f4f1ea;
+}
+.about-fact dd {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+/* Pointer label over the portal */
+.about-enter-label {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 6;
+  margin-top: 26px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(244, 241, 234, 0.92);
+  color: #000;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  translate: -50% -4px;
+  transition: opacity 0.2s ease, translate 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.about.is-entering:not(.is-travelling) .about-enter-label {
+  opacity: 1;
+  translate: -50% 0;
+}
+
+/* Entrance */
+.about:not(.is-revealed) :is(.about-list, .about-portal-heading, .about-title, .about-fact) {
+  opacity: 0;
+}
+.about.is-revealed .about-list {
+  animation: about-side 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.35s both;
+}
+.about.is-revealed .about-portal-heading {
+  animation: about-rise 0.85s cubic-bezier(0.22, 1, 0.36, 1) 0.5s both;
+}
+.about.is-revealed .about-title {
+  animation: about-title 1.05s cubic-bezier(0.16, 1, 0.3, 1) 0.6s both;
+}
+.about.is-revealed .about-fact {
+  animation: about-rise 0.72s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.about.is-revealed .about-fact:nth-child(1) { animation-delay: 0.9s; }
+.about.is-revealed .about-fact:nth-child(2) { animation-delay: 1.06s; }
+.about.is-revealed .about-fact:nth-child(3) { animation-delay: 1.22s; }
+.about.is-revealed .about-fact:nth-child(4) { animation-delay: 1.38s; }
+.about.is-revealed .about-list-item.active::before {
+  animation: about-dot 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.6s both;
+}
+
+@keyframes about-side {
+  from { opacity: 0; filter: blur(8px); transform: translate(-20px, -43%); }
+  to { opacity: 1; filter: blur(0); transform: translate(0, -43%); }
+}
+@keyframes about-rise {
+  from { opacity: 0; filter: blur(7px); transform: translateY(20px); }
+  to { opacity: 1; filter: blur(0); transform: translateY(0); }
+}
+@keyframes about-title {
+  from { opacity: 0; filter: blur(12px); transform: translateY(42px); }
+  to { opacity: 1; filter: blur(0); transform: translateY(0); }
+}
+@keyframes about-dot {
+  from { opacity: 0; transform: scale(0); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* Tablet and below: list hidden, everything flows top to bottom. */
+@media (max-width: 1199px) {
+  .about {
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+    min-height: 0;
+    padding: 112px var(--about-gutter) 32px;
+  }
+  .about-list {
+    display: none;
+  }
+  .about-chrome {
+    position: relative;
+    left: auto;
+    right: auto;
+    top: auto;
+    bottom: auto;
+  }
+  .about-intro {
+    width: auto;
+    max-width: 620px;
+  }
+  .about-portal-wrap {
+    align-self: center;
+    width: min(300px, 48vw);
+    transform: none;
+  }
+  .about-bottom {
+    display: block;
+  }
+  .about-title {
+    margin-bottom: 24px;
+    font-size: clamp(96px, 20vw, 190px);
+  }
+  .about-facts {
+    width: 100%;
+    max-width: 620px;
+  }
+}
+@media (max-width: 640px) {
+  .about {
+    padding: 96px 18px 24px;
+  }
+  .about-portal-wrap {
+    width: min(260px, 70vw);
+  }
+  .about-portal {
+    border-radius: 70px;
+  }
+  .about-portal-heading {
+    font-size: 14px;
+  }
+  .about-title {
+    margin-bottom: 20px;
+    font-size: clamp(84px, 27vw, 150px);
+  }
+  .about-facts {
+    font-size: 13px;
+  }
+  .about-fact {
+    grid-template-columns: 92px 1fr;
+    padding: 6px 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .about.is-revealed :is(.about-list, .about-portal-heading, .about-title, .about-fact) {
+    animation: none;
+  }
+}

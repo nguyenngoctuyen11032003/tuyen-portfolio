@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { MouseEvent } from 'react';
 import { motion, useInView, useScroll, useSpring, useTransform } from 'framer-motion';
 import { useLang } from '../context/LangContext';
-import { splitAccent } from './HeroSection';
+import { splitAccent } from './hero/text';
 import { TechTag } from './ui/TechTag';
 import type { Content, ExperienceItem } from '../data/content';
 

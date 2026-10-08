@@ -1,6 +1,38 @@
 import { describe, expect, it } from 'vitest';
 import { content } from '../../data/content';
-import { collectShots, depthAfterRotation, depthDim, fibonacciSphere, sphereMetrics } from './sphere';
+import {
+  collectShots,
+  depthAfterRotation,
+  depthDim,
+  fibonacciSphere,
+  rotatePoint,
+  sphereMetrics,
+  titleOverlap,
+} from './sphere';
+
+describe('rotatePoint', () => {
+  it('agrees with depthAfterRotation on z', () => {
+    for (const p of fibonacciSphere(12)) {
+      expect(rotatePoint(p, 37, -14).z).toBeCloseTo(depthAfterRotation(p, 37, -14));
+    }
+  });
+
+  it('keeps points on the unit sphere', () => {
+    const r = rotatePoint({ x: 0.6, y: 0.48, z: 0.64, lat: 0, lon: 0 }, 50, 20);
+    expect(Math.hypot(r.x, r.y, r.z)).toBeCloseTo(1);
+  });
+});
+
+describe('titleOverlap', () => {
+  it('is full for a near card right over the title', () => {
+    expect(titleOverlap({ x: 0, y: 0, z: 1 }, 400, 150, 60, 120, 80)).toBe(1);
+  });
+
+  it('ignores cards behind the title or well clear of it', () => {
+    expect(titleOverlap({ x: 0, y: 0, z: -1 }, 400, 150, 60, 120, 80)).toBe(0);
+    expect(titleOverlap({ x: 0.9, y: 0, z: 0.4 }, 400, 150, 60, 120, 80)).toBe(0);
+  });
+});
 
 describe('collectShots', () => {
   const shots = collectShots(content.vi.projects.items);

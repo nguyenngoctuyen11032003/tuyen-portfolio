@@ -1,50 +1,361 @@
+import { useEffect, useRef, useState } from 'react';
 import { useLang } from '../context/LangContext';
 import { WordsPullUp } from './ui/WordsPullUp';
+import { animateValue, coverRect, project, roundedRectPoints } from './about/portal';
 import avatarUrl from '../assets/avatar.jpg';
+import './about/about.css';
 
+/** Max pointer tilt of the portal window, in degrees (around the Y and X axes). */
+const TILT_Y = 37.4;
+const TILT_X = -33;
+/** The avatar stays put inside a square this much larger than the portal, so the window slides over it. */
+const STAGE_SCALE = 1.35;
+
+const pad = (n: number) => `[${String(n).padStart(2, '0')}]`;
+
+/**
+ * About: a cinematic layout borrowed from a "portal" landing page. A rounded window drawn on a
+ * canvas opens in the centre, tilts toward the pointer while the photo behind it stays still, and
+ * on click swallows the section before scrolling on to the next one. Section list on the left,
+ * giant title bottom-left, facts bottom-right.
+ */
 export function AboutSection() {
   const { t } = useLang();
+  const sectionRef = useRef<HTMLElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const portalRef = useRef<HTMLButtonElement>(null);
+  const imageRef = useRef<HTMLImageElement>(null);
+  const labelRef = useRef<HTMLSpanElement>(null);
+  const travelRef = useRef<() => void>(() => {});
+  // No 2D canvas (very old browser, test DOM): show the plain photo and skip the entrance.
+  const [flat] = useState(() => {
+    try {
+      return !document.createElement('canvas').getContext('2d');
+    } catch {
+      return true;
+    }
+  });
+  const [revealed, setRevealed] = useState(flat);
+  const [travelling, setTravelling] = useState(false);
+
+  const links = t.nav.links;
+  const index = Math.max(0, links.findIndex((l) => l.href === '#about'));
+  const next = links[index + 1];
+  const nextHref = next?.href;
+
+  const facts: [string, string][] = [
+    [t.about.educationLabel, t.about.educationSchool],
+    [t.about.degreeLabel, t.about.educationDegree],
+    [t.about.periodLabel, t.about.educationDates],
+    [t.about.languagesLabel, t.about.languages],
+  ];
+
+  useEffect(() => {
+    const section = sectionRef.current;
+    const canvas = canvasRef.current;
+    const portal = portalRef.current;
+    const image = imageRef.current;
+    const label = labelRef.current;
+    if (!section || !canvas || !portal || !image || !label) return;
+
+    const reduced =
+      typeof window.matchMedia === 'function' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let ctx: CanvasRenderingContext2D | null = null;
+    try {
+      ctx = canvas.getContext('2d');
+    } catch {
+      ctx = null;
+    }
+
+    const s = {
+      rotX: 0,
+      rotY: 0,
+      targetX: 0,
+      targetY: 0,
+      mask: reduced ? 1 : 0,
+      expansion: 0,
+      busy: false,
+      visible: false,
+      revealed: false,
+      labelX: 0,
+      labelY: 0,
+      pointerX: 0,
+      pointerY: 0,
+      radius: 90,
+      width: 0,
+      height: 0,
+    };
+    let raf = 0;
+    let last = 0;
+    let disposed = false;
+
+
+    const resize = () => {
+      s.width = section.clientWidth;
+      s.height = section.clientHeight;
+      s.radius = parseFloat(getComputedStyle(portal).borderTopLeftRadius) || 90;
+      if (!ctx) return;
+      const d = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = Math.round(s.width * d);
+      canvas.height = Math.round(s.height * d);
+      canvas.style.width = `${s.width}px`;
+      canvas.style.height = `${s.height}px`;
+      ctx.setTransform(d, 0, 0, d, 0, 0);
+    };
+
+    const draw = (now: number) => {
+      raf = 0;
+      if (!ctx || disposed) return;
+      const dt = Math.min(40, last ? now - last : 16);
+      last = now;
+      const k = Math.min(1, dt * 0.009);
+      s.rotX += (s.targetX - s.rotX) * k;
+      s.rotY += (s.targetY - s.rotY) * k;
+      s.labelX += (s.pointerX - s.labelX) * 0.2;
+      s.labelY += (s.pointerY - s.labelY) * 0.2;
+      label.style.transform = `translate3d(${s.labelX.toFixed(1)}px, ${s.labelY.toFixed(1)}px, 0)`;
+
+      const W = s.width;
+      const H = s.height;
+      ctx.clearRect(0, 0, W, H);
+
+      const sr = section.getBoundingClientRect();
+      const pr = portal.getBoundingClientRect();
+      const rcx = pr.left - sr.left + pr.width / 2;
+      const rcy = pr.top - sr.top + pr.height / 2;
+      const e = s.expansion;
+      const cx = rcx + (W / 2 - rcx) * e;
+      const cy = rcy + (H / 2 - rcy) * e;
+      const scale = e ? 1 : s.mask;
+      const w = (pr.width + (W - pr.width) * e) * scale;
+      const h = (pr.height + (H - pr.height) * e) * scale;
+
+      if (w > 1 && h > 1) {
+        const rx = s.rotX * (1 - e);
+        const ry = s.rotY * (1 - e);
+        const pts = roundedRectPoints(w, h, s.radius * (1 - e) * scale).map((p) =>
+          project(p, rx, ry, cx, cy)
+        );
+        ctx.save();
+        ctx.beginPath();
+        pts.forEach(([x, y], i) => (i ? ctx!.lineTo(x, y) : ctx!.moveTo(x, y)));
+        ctx.closePath();
+        ctx.clip();
+        ctx.fillStyle = '#050505';
+        ctx.fillRect(0, 0, W, H);
+
+        if (image.complete && image.naturalWidth) {
+          // The photo is locked to a stage around the portal's resting place, not to the window.
+          const side = Math.max(pr.width, pr.height) * STAGE_SCALE;
+          const sx = rcx - side / 2;
+          const sy = rcy - side / 2;
+          const box = coverRect(
+            image.naturalWidth,
+            image.naturalHeight,
+            sx + (0 - sx) * e,
+            sy + (0 - sy) * e,
+            side + (W - side) * e,
+            side + (H - side) * e
+          );
+          ctx.drawImage(image, box.x, box.y, box.w, box.h);
+        }
+
+        const shade = ctx.createLinearGradient(0, cy, 0, cy + h / 2);
+        shade.addColorStop(0, 'rgba(0,0,0,0)');
+        shade.addColorStop(1, 'rgba(0,0,0,0.55)');
+        ctx.fillStyle = shade;
+        ctx.fillRect(0, cy, W, h / 2 + 2);
+        ctx.restore();
+
+        ctx.strokeStyle = 'rgba(244,241,234,0.22)';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+
+      const settling =
+        Math.abs(s.targetX - s.rotX) + Math.abs(s.targetY - s.rotY) > 0.01 ||
+        Math.abs(s.pointerX - s.labelX) + Math.abs(s.pointerY - s.labelY) > 0.1;
+      if (s.visible && (settling || s.busy || (s.revealed && s.mask < 1))) raf = requestAnimationFrame(draw);
+    };
+
+    const kick = () => {
+      if (!raf && ctx && !disposed) {
+        last = 0;
+        raf = requestAnimationFrame(draw);
+      }
+    };
+
+    const reveal = () => {
+      if (s.revealed) return;
+      s.revealed = true;
+      setRevealed(true);
+      if (reduced) {
+        kick();
+        return;
+      }
+      kick();
+      void animateValue((v) => {
+        s.mask = v;
+        kick();
+      }, 1050);
+    };
+
+    const onMove = (ev: PointerEvent) => {
+      const sr = section.getBoundingClientRect();
+      s.pointerX = ev.clientX - sr.left;
+      s.pointerY = ev.clientY - sr.top;
+      if (!reduced && !s.busy && ev.pointerType === 'mouse') {
+        s.targetY = (s.pointerX / sr.width - 0.5) * TILT_Y;
+        s.targetX = (s.pointerY / sr.height - 0.5) * TILT_X;
+      }
+      kick();
+    };
+    const onLeave = () => {
+      s.targetX = 0;
+      s.targetY = 0;
+      kick();
+    };
+    const onPortalEnter = () => section.classList.add('is-entering');
+    const onPortalLeave = () => section.classList.remove('is-entering');
+
+    travelRef.current = () => {
+      if (s.busy || !nextHref) return;
+      const target = document.querySelector(nextHref);
+      if (reduced || !ctx) {
+        target?.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' });
+        return;
+      }
+      s.busy = true;
+      s.targetX = 0;
+      s.targetY = 0;
+      setTravelling(true);
+      kick();
+      void animateValue((v) => {
+        s.expansion = v;
+        kick();
+      }, 900).then(() => {
+        target?.scrollIntoView({ behavior: 'smooth' });
+        window.setTimeout(() => {
+          if (disposed) return;
+          s.expansion = 0;
+          s.busy = false;
+          setTravelling(false);
+          kick();
+        }, 900);
+      });
+    };
+
+    resize();
+    const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(() => (resize(), kick())) : null;
+    ro?.observe(section);
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        s.visible = entry.isIntersecting;
+        if (entry.intersectionRatio >= 0.3) reveal();
+        if (s.visible) kick();
+      },
+      { threshold: [0, 0.3] }
+    );
+    io.observe(section);
+    image.addEventListener('load', kick);
+    section.addEventListener('pointermove', onMove);
+    section.addEventListener('pointerleave', onLeave);
+    portal.addEventListener('pointerenter', onPortalEnter);
+    portal.addEventListener('pointerleave', onPortalLeave);
+
+    return () => {
+      disposed = true;
+      cancelAnimationFrame(raf);
+      ro?.disconnect();
+      io.disconnect();
+      image.removeEventListener('load', kick);
+      section.removeEventListener('pointermove', onMove);
+      section.removeEventListener('pointerleave', onLeave);
+      portal.removeEventListener('pointerenter', onPortalEnter);
+      portal.removeEventListener('pointerleave', onPortalLeave);
+    };
+  }, [nextHref]);
+
+  const sectionClass = [
+    'about noise-overlay',
+    flat ? 'about--flat' : '',
+    revealed ? 'is-revealed' : '',
+    travelling ? 'is-travelling' : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   return (
-    <section id="about" aria-labelledby="about-heading" className="bg-black py-24 md:py-32 px-6 noise-overlay">
-      <div className="surface-card max-w-5xl mx-auto p-8 md:p-14 flex flex-col md:flex-row gap-10 md:gap-16 items-center">
-        <div className="avatar-glow rounded-3xl w-40 h-40 md:w-56 md:h-56 flex-shrink-0">
-          <div className="liquid-glass rounded-3xl overflow-hidden w-full h-full">
-            <img src={avatarUrl} alt="Nguyễn Ngọc Tuyền" className="w-full h-full object-cover" />
-          </div>
-        </div>
+    <section id="about" ref={sectionRef} aria-labelledby="about-heading" className={sectionClass}>
+      <div className="about-ambient" aria-hidden="true" style={{ backgroundImage: `url(${avatarUrl})` }} />
+      <div className="about-shade" aria-hidden="true" />
+      <canvas ref={canvasRef} className="about-canvas" aria-hidden="true" />
 
-        <div className="flex-1 text-left">
-          <p className="text-white/40 text-xs tracking-widest uppercase mb-4">{t.about.label}</p>
-          <h2 id="about-heading" className="text-3xl md:text-5xl font-serif text-ink mb-6 leading-tight">
-            <WordsPullUp text={t.about.heading} />
-          </h2>
-          <p className="text-white/70 text-sm md:text-base leading-relaxed mb-8">
-            {t.about.paragraphPlain}{' '}
-            <em className="font-serif italic text-primary">{t.about.paragraphItalic}</em>
-            {t.about.paragraphPlainEnd}
-          </p>
+      <nav className="about-list about-chrome" aria-label={t.about.label}>
+        {links.map((link, i) => (
+          <a
+            key={link.href}
+            href={link.href}
+            className={`about-list-item${i === index ? ' active' : ''}`}
+            aria-current={i === index ? 'true' : undefined}
+          >
+            {link.label}
+          </a>
+        ))}
+      </nav>
 
-          <div className="border-t border-white/10 pt-6">
-            <p className="text-white/40 text-xs tracking-widest uppercase mb-2">
-              {t.about.educationLabel}
-            </p>
-            <p className="text-ink text-sm md:text-base font-medium">
-              {t.about.educationSchool}
-            </p>
-            <p className="text-white/60 text-sm">
-              {t.about.educationDegree} · {t.about.educationDates}
-            </p>
-          </div>
-
-          <div className="border-t border-white/10 pt-6 mt-6">
-            <p className="text-white/40 text-xs tracking-widest uppercase mb-2">
-              {t.about.languagesLabel}
-            </p>
-            <p className="text-white/60 text-sm">{t.about.languages}</p>
-          </div>
-        </div>
+      <div className="about-intro about-chrome">
+        <p className="about-eyebrow">
+          {pad(index + 1)} — {t.about.label}
+        </p>
+        <h2 id="about-heading" className="text-2xl md:text-4xl font-serif text-ink leading-tight mb-5">
+          <WordsPullUp text={t.about.heading} />
+        </h2>
+        <p className="text-white/70 text-sm md:text-[15px] leading-relaxed">
+          {t.about.paragraphPlain}{' '}
+          <em className="font-serif italic text-primary">{t.about.paragraphItalic}</em>
+          {t.about.paragraphPlainEnd}
+        </p>
       </div>
+
+      <div className="about-portal-wrap about-chrome">
+        {next && (
+          <div className="about-portal-heading">
+            <span>{t.about.nextLabel}</span>
+            <span>
+              {pad(index + 2)} <strong>{next.label}</strong>
+            </span>
+          </div>
+        )}
+        <button
+          ref={portalRef}
+          type="button"
+          className="about-portal"
+          aria-label={next ? `${t.about.nextLabel} ${next.label}` : t.about.label}
+          onClick={() => travelRef.current()}
+        >
+          <img ref={imageRef} src={avatarUrl} alt="Nguyễn Ngọc Tuyền" />
+        </button>
+      </div>
+
+      <div className="about-bottom about-chrome">
+        <p className="about-title" aria-hidden="true">
+          {t.about.title.toUpperCase()}
+        </p>
+        <dl className="about-facts">
+          {facts.map(([key, value]) => (
+            <div key={key} className="about-fact">
+              <dt>{key}</dt>
+              <dd>{value}</dd>
+            </div>
+          ))}
+        </dl>
+      </div>
+
+      <span ref={labelRef} className="about-enter-label" aria-hidden="true">
+        {t.about.enterLabel}
+      </span>
     </section>
   );
 }

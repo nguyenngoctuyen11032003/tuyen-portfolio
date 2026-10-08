@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import { LangProvider } from '../context/LangContext';
 import { SkillsSection } from './SkillsSection';
 import { content } from '../data/content';
@@ -21,17 +21,43 @@ describe('SkillsSection', () => {
     expect(screen.getByText('Công nghệ chính')).toBeInTheDocument();
   });
 
-  it('renders core items, category labels and items', () => {
+  it('renders core items on the arch', () => {
     setup();
     const coreList = screen.getByRole('list', { name: s.coreLabel });
     const tiles = within(coreList).getAllByRole('listitem');
     expect(tiles).toHaveLength(s.core.length);
     for (const n of s.core) expect(within(coreList).getByText(n)).toBeInTheDocument();
-    expect(screen.getAllByRole('heading', { level: 3 })).toHaveLength(s.categories.length);
+  });
+
+  it('exposes one accessible card per skill group (clones are hidden)', () => {
+    setup();
+    const slider = screen.getByRole('region', { name: s.sliderLabel });
+    expect(within(slider).getAllByRole('heading', { level: 3 })).toHaveLength(s.categories.length);
+    const cards = within(slider).getAllByRole('button');
+    expect(cards).toHaveLength(s.categories.length);
     for (const c of s.categories) {
-      expect(screen.getAllByText(c.label).length).toBeGreaterThan(0);
-      for (const i of c.items) expect(screen.getAllByText(i).length).toBeGreaterThan(0);
+      expect(within(slider).getAllByText(c.label).length).toBeGreaterThan(0);
+      expect(within(slider).getAllByText(c.items.join(' · ')).length).toBeGreaterThan(0);
     }
+  });
+
+  it('selects a card on click and moves with the arrows', () => {
+    setup();
+    const slider = screen.getByRole('region', { name: s.sliderLabel });
+    const cards = within(slider).getAllByRole('button');
+    expect(cards[0]).toHaveAttribute('aria-pressed', 'true');
+    fireEvent.click(cards[2]);
+    expect(cards[2]).toHaveAttribute('aria-pressed', 'true');
+    fireEvent.click(screen.getByRole('button', { name: s.prevLabel }));
+    expect(cards[1]).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  it('tells the stack and security story', () => {
+    setup();
+    expect(screen.getByRole('heading', { name: s.stackTitle })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: s.securityTitle })).toBeInTheDocument();
+    expect(screen.getByText(s.note)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: s.securityCta.label })).toHaveAttribute('href', '#certifications');
   });
 
   it('hides all icons from assistive tech', () => {

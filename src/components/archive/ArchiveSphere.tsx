@@ -2,7 +2,7 @@ import { Fragment, useEffect, useMemo, useRef, useState, type CSSProperties } fr
 import { ArrowDown } from 'lucide-react';
 import { useLang } from '../../context/LangContext';
 import { ProjectDetailModal } from '../ProjectDetailModal';
-import { collectShots, depthAfterRotation, depthDim, fibonacciSphere, sphereMetrics } from './sphere';
+import { collectShots, depthDim, fibonacciSphere, rotatePoint, sphereMetrics, titleOverlap } from './sphere';
 
 const DRAG_DEG_PER_PX = 0.13;
 const FRICTION = 0.94;
@@ -68,6 +68,9 @@ export function ArchiveSphere() {
     let camZ = 0;
     let dragging = false;
     const lastDim: number[] = [];
+    // Title half-size and each card's height, measured in layout(); used to fade cards off the title.
+    let titleHalf = { w: 0, h: 0 };
+    const cardH: number[] = [];
     const lastFade: number[] = [];
 
     function layout() {
@@ -79,6 +82,7 @@ export function ArchiveSphere() {
         if (!card) return;
         const tall = card.dataset.tall === 'true';
         const h = tall ? cw * 1.3 : cw / 1.6;
+        cardH[i] = h;
         card.style.width = `${cw}px`;
         card.style.height = `${h}px`;
         card.style.marginLeft = `${-cw / 2}px`;
@@ -87,6 +91,12 @@ export function ArchiveSphere() {
           `translate3d(${(p.x * R).toFixed(2)}px, ${(-p.y * R).toFixed(2)}px, ${(p.z * R).toFixed(2)}px) ` +
           `rotateY(${p.lon.toFixed(3)}deg) rotateX(${p.lat.toFixed(3)}deg)`;
       });
+      measureTitle();
+    }
+
+    function measureTitle() {
+      const inner = headline!.querySelector<HTMLElement>('.inner');
+      titleHalf = { w: headline!.offsetWidth / 2, h: (inner?.offsetHeight ?? 0) / 2 };
     }
 
     function scrollProgress() {
@@ -126,10 +136,14 @@ export function ArchiveSphere() {
       points.forEach((pt, i) => {
         const card = cardRefs.current[i];
         if (!card) return;
-        const depth = depthAfterRotation(pt, sy, sx);
+        const pos = rotatePoint(pt, sy, sx);
+        const depth = pos.z;
         const dim = Math.round(Math.min(1, depthDim(depth, shade) + (openRef.current ? 0.6 : 0)) * 100) / 100;
         const z = depth * R + camZ;
-        const fade = z > near ? Math.max(0, 1 - (z - near) / 190) : 1;
+        const nearFade = z > near ? Math.max(0, 1 - (z - near) / 190) : 1;
+        // Cards passing in front of the title turn into ghosts so the words stay readable.
+        const ghost = titleOverlap(pos, R, titleHalf.w, titleHalf.h, metrics.cardWidth, cardH[i] ?? metrics.cardWidth);
+        const fade = nearFade * (1 - ghost * 0.85);
         const fadeR = Math.round(fade * 100) / 100;
         if (lastDim[i] !== dim) {
           card.style.setProperty('--d', String(dim));
@@ -149,20 +163,28 @@ export function ArchiveSphere() {
       frame();
       raf = visible ? requestAnimationFrame(loop) : 0;
     };
+    // Arms image loading 600px early; the camera loop only runs while the section is on screen.
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
           setArmed(true);
           if (entry.intersectionRatio > 0.25) setRevealed(true);
         }
-        visible = entry.isIntersecting;
-        if (visible && !raf) raf = requestAnimationFrame(loop);
       },
       { rootMargin: '600px 0px', threshold: [0, 0.25] }
     );
     observer.observe(section);
+    const loopObserver = new IntersectionObserver(([entry]) => {
+      visible = entry.isIntersecting;
+      if (visible && !raf) raf = requestAnimationFrame(loop);
+    });
+    loopObserver.observe(section);
     layout();
     frame();
+    // The title's size changes with the language and its reveal; keep the fade zone in step.
+    const titleObserver = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(measureTitle) : null;
+    const titleInner = headline.querySelector('.inner');
+    if (titleInner) titleObserver?.observe(titleInner);
 
     // Drag: mouse/pen rotate at once; touch waits until the gesture is clearly horizontal so a
     // vertical swipe still scrolls the page.
@@ -263,6 +285,8 @@ export function ArchiveSphere() {
 
     return () => {
       observer.disconnect();
+      loopObserver.disconnect();
+      titleObserver?.disconnect();
       cancelAnimationFrame(raf);
       stage.removeEventListener('pointerdown', onPointerDown);
       stage.removeEventListener('pointermove', onPointerMove);

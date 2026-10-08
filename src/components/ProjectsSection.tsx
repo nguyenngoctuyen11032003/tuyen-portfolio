@@ -4,7 +4,7 @@ import { ArrowRight, ArrowUpRight } from 'lucide-react';
 import { useLang } from '../context/LangContext';
 import { TechTag } from './ui/TechTag';
 import { ProjectDetailModal } from './ProjectDetailModal';
-import { splitAccent } from './HeroSection';
+import { splitAccent } from './hero/text';
 import { mediumOf, thumbOf } from '../data/thumbs';
 import { useScrollScale } from '../hooks/useScrollScale';
 import type { ProjectItem } from '../data/content';

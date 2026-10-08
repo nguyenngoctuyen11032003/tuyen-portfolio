@@ -79,7 +79,9 @@ export function SandTransition({ children, className = '' }: SandTransitionProps
     <div ref={boxRef} className={className} style={{ filter: `url(#${filterId})` }}>
       <svg width="0" height="0" aria-hidden="true" focusable="false" style={{ position: 'absolute' }}>
         <filter id={filterId} x="-60%" y="-60%" width="220%" height="220%" colorInterpolationFilters="sRGB">
-          <feTurbulence type="fractalNoise" baseFrequency="1.8" numOctaves="4" result="noise" />
+          {/* The chain re-runs every frame of the transition. At this frequency octaves 3–4 are
+              sub-pixel detail, so two octaves look the same at about half the cost. */}
+          <feTurbulence type="fractalNoise" baseFrequency="1.8" numOctaves="2" result="noise" />
           <feDisplacementMap ref={dispRef} in="SourceGraphic" in2="noise" scale="150" xChannelSelector="R" yChannelSelector="G" result="sand" />
           <feOffset ref={offsetRef} in="sand" dx="0" dy="0" result="moved" />
           <feGaussianBlur ref={blurRef} in="moved" stdDeviation="6" result="soft" />

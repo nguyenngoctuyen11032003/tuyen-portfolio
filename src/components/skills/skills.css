@@ -1,0 +1,759 @@
+/* ---------------------------------------------------------------------------
+   Skills (SkillsSection.tsx). A cinematic pinned stage: the section is
+   100vh + --scroll-length tall, .tech-stage sticks, and skills/cinema.ts writes
+   the custom properties below on every frame, each on the layer that reads it
+   (see VAR_TARGETS). Only transform and opacity are scrubbed: no animated
+   blur, filter, gradient or box size. Layer order, bottom to top:
+   sky, back stack (glow + floor grid), shade, title, core arch, TypeScript
+   core, foreground slabs, slider, controls, intro copy, story panels.
+   ------------------------------------------------------------------------ */
+.tech {
+  --sky-opacity: 1;
+  --back-opacity: 1;
+  --back-x: 0px;
+  --back-y: 0px;
+  --back-scale: 0.76;
+  --glow-y: 10vh;
+  --glow-scale: 0.78;
+  --glow-opacity: 0.72;
+  --grid-y: 20vh;
+  --grid-sharp-opacity: 0.8;
+  --grid-soft-opacity: 0;
+  --shade-opacity: 0;
+  --tint: 2, 14, 10;
+  --title-y: 0px;
+  --title-scale: 1;
+  --title-opacity: 1;
+  --arch-x: -50%;
+  --arch-y: 0px;
+  --arch-scale: 1.02;
+  --split-left-x: -50%;
+  --split-right-x: -50%;
+  --split-y: 0px;
+  --split-scale: 1;
+  --core-opacity: 0;
+  --core-x: -50%;
+  --core-y: -50%;
+  --core-scale: 1.06;
+  --intro-y: 0px;
+  --intro-opacity: 1;
+  --panel2-opacity: 0;
+  --panel2-y: calc(-50% + 58px);
+  --panel3-opacity: 0;
+  --panel3-y: calc(-50% + 58px);
+  --panel3-pe: none;
+  --slider-enter-x: 420vw;
+  --slider-pe: none;
+  --slider-opacity: 0;
+  --slider-top: calc(50vh - 158px);
+  --label-h: 40px;
+  --arch-opacity: 1;
+  --controls-opacity: 0;
+  --card-w: clamp(340px, 19.4vw, 410px);
+  --card-h: 236px;
+  --gap: clamp(16px, 1.15vw, 24px);
+  --gutter: 48px;
+  --cream: #f4f1ea;
+  --ink-dark: #0b0f0d;
+  --shadow: rgba(0, 0, 0, 0.5);
+
+  position: relative;
+  height: calc(100vh + var(--scroll-length, 4100px));
+  background: #000;
+  color: var(--cream);
+}
+.tech-stage {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100dvh;
+  min-height: 620px;
+  overflow: hidden;
+  isolation: isolate;
+  background: #000;
+}
+.tech-world,
+.tech-sky,
+.tech-back,
+.tech-shade,
+.tech-title,
+.tech-arch,
+.tech-core,
+.tech-slab,
+.tech-slider,
+.tech-controls,
+.tech-intro,
+.tech-panel {
+  position: absolute;
+}
+.tech-world {
+  inset: 0;
+  overflow: hidden;
+}
+
+/* Sky: deep emerald night with an aurora over the horizon. */
+.tech-sky {
+  inset: 0;
+  z-index: 0;
+  background:
+    radial-gradient(70% 45% at 50% 0%, rgba(52, 211, 153, 0.22), transparent 70%),
+    radial-gradient(40% 35% at 82% 18%, rgba(34, 211, 238, 0.12), transparent 70%),
+    linear-gradient(180deg, #000 0%, #03120d 38%, #062018 62%, #020806 86%, #000 100%);
+  /* Dimmed by opacity (same as brightness over the black stage). */
+  opacity: var(--sky-opacity);
+  will-change: opacity;
+}
+
+/* Back stack: glow orbs and a perspective floor grid, zoomed in as the timeline runs. */
+.tech-back {
+  top: 0;
+  bottom: 0;
+  left: -3vw;
+  right: -3vw;
+  z-index: 1;
+  opacity: var(--back-opacity);
+  transform: translate3d(var(--back-x), var(--back-y), 0) scale(var(--back-scale));
+  transform-origin: 50% 100%;
+  will-change: transform, opacity;
+}
+.tech-glow,
+.tech-grid {
+  position: absolute;
+  bottom: 0;
+  left: 48%;
+  width: 112%;
+}
+.tech-glow {
+  z-index: 1;
+  height: 90%;
+  opacity: var(--glow-opacity);
+  mix-blend-mode: screen;
+  transform: translate3d(-50%, calc(var(--glow-y) - 110px), 0) scale(var(--glow-scale));
+  will-change: transform, opacity;
+}
+.tech-glow i {
+  position: absolute;
+  border-radius: 50%;
+}
+.tech-glow i:first-child {
+  left: 26%;
+  top: 22%;
+  width: 34%;
+  aspect-ratio: 1;
+  background: radial-gradient(circle, rgba(52, 211, 153, 0.55), transparent 65%);
+}
+.tech-glow i:last-child {
+  right: 22%;
+  top: 34%;
+  width: 26%;
+  aspect-ratio: 1;
+  background: radial-gradient(circle, rgba(34, 211, 238, 0.4), transparent 65%);
+}
+.tech-grid {
+  z-index: 3;
+  height: 46%;
+  overflow: visible;
+  stroke: #34d399;
+  /* 0.3 at the resting layer opacity of 0.8; the layer brightens to 1 for the security panel. */
+  stroke-opacity: 0.375;
+  stroke-width: 1;
+  opacity: var(--grid-sharp-opacity);
+  transform: translate3d(-50%, var(--grid-y), 0) scale(0.86);
+  -webkit-mask: linear-gradient(180deg, transparent 0%, #000 45%);
+  mask: linear-gradient(180deg, transparent 0%, #000 45%);
+  will-change: transform, opacity;
+}
+.tech-grid.is-soft {
+  opacity: var(--grid-soft-opacity);
+}
+.tech-grid line {
+  vector-effect: non-scaling-stroke;
+}
+
+.tech-shade {
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  /* Fixed gradient faded by opacity, so the scrub never repaints it. */
+  background: linear-gradient(
+    180deg,
+    rgba(var(--tint), 0.465) 0%,
+    rgba(var(--tint), 0.42) 48%,
+    rgba(var(--tint), 0.51) 100%
+  );
+  opacity: var(--shade-opacity);
+  will-change: opacity;
+}
+
+/* Giant serif title. */
+.tech-title {
+  left: 50%;
+  top: clamp(122px, 19vh, 205px);
+  z-index: 3;
+  width: min(94vw, 1780px);
+  margin: 0;
+  color: var(--cream);
+  font-family: 'Playfair Display', 'Instrument Serif', serif;
+  font-size: 13rem;
+  font-weight: 400;
+  line-height: 0.86;
+  letter-spacing: -0.03em;
+  text-align: center;
+  white-space: nowrap;
+  transform: translate3d(-50%, var(--title-y), 0) scale(var(--title-scale));
+  opacity: var(--title-opacity);
+  will-change: transform, opacity;
+}
+
+/* Core stack arranged on an arch: the "bridge" of the composition. */
+.tech-arch {
+  left: 50%;
+  /* High enough that the end tiles' names (hung below the tiles) clear the bottom of the screen. */
+  bottom: calc(5vh + 64px);
+  z-index: 4;
+  /* Fixed box: cinema.ts widens it with scale, never with width/bottom (no layout per frame). */
+  width: min(67.2vw, 2140px);
+  aspect-ratio: 2.3 / 1;
+  transform: translate3d(var(--arch-x), var(--arch-y), 0) scale(var(--arch-scale));
+  transform-origin: 50% 48%;
+  opacity: var(--arch-opacity);
+  will-change: transform, opacity;
+}
+.tech-arch ul {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.tech-arch::before {
+  content: '';
+  position: absolute;
+  left: 6%;
+  right: 6%;
+  bottom: 0;
+  aspect-ratio: 2 / 1;
+  max-height: 100%;
+  margin: 0 auto;
+  border: 1px solid rgba(52, 211, 153, 0.18);
+  border-bottom: 0;
+  border-radius: 999px 999px 0 0;
+  box-shadow: inset 0 1px 40px rgba(52, 211, 153, 0.06);
+}
+.tech-arch-label {
+  position: absolute;
+  left: 50%;
+  bottom: 54%;
+  margin: 0;
+  transform: translateX(-50%);
+  font-family: 'Space Mono', ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: rgba(244, 241, 234, 0.5);
+}
+.tech-tile {
+  position: absolute;
+  left: var(--tile-left);
+  bottom: var(--tile-bottom);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  transform: translate(-50%, 50%);
+}
+.tech-tile-icon {
+  display: grid;
+  place-items: center;
+  width: clamp(56px, 4.6vw, 84px);
+  aspect-ratio: 1;
+  border-radius: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(160deg, rgba(20, 32, 27, 0.92), rgba(5, 9, 7, 0.92));
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  color: var(--brand);
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease;
+}
+.tech-tile-icon svg {
+  width: 44%;
+  height: 44%;
+}
+.tech-tile:hover .tech-tile-icon {
+  transform: translateY(-4px);
+  border-color: color-mix(in srgb, var(--brand) 55%, transparent);
+}
+.tech-tile-name {
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: rgba(244, 241, 234, 0.72);
+  white-space: nowrap;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6);
+}
+
+/* TypeScript core: the backdrop for the stack panel. */
+.tech-core {
+  left: 50%;
+  top: 50%;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  width: min(122vw, 2160px);
+  aspect-ratio: 16 / 9;
+  pointer-events: none;
+  opacity: var(--core-opacity);
+  transform: translate3d(var(--core-x), var(--core-y), 0) scale(var(--core-scale));
+  transform-origin: 50% 48%;
+  background:
+    radial-gradient(closest-side, rgba(52, 211, 153, 0.2), transparent 70%),
+    repeating-radial-gradient(circle at 50% 50%, rgba(52, 211, 153, 0.09) 0 1px, transparent 1px 64px);
+  -webkit-mask: radial-gradient(closest-side, #000 40%, transparent 100%);
+  mask: radial-gradient(closest-side, #000 40%, transparent 100%);
+}
+.tech-core-mark {
+  width: min(26vw, 380px);
+  height: auto;
+  color: rgba(49, 120, 198, 0.16);
+}
+
+/* Foreground slabs that part sideways. */
+.tech-slab {
+  left: 50%;
+  bottom: -2vh;
+  /* Behind the arch: the slabs' corner shade and ghost icons must never sit on a tile's name. */
+  z-index: 3;
+  width: min(118vw, 2240px);
+  height: 44vh;
+  pointer-events: none;
+}
+.tech-slab-left {
+  transform: translate3d(var(--split-left-x), var(--split-y), 0) scale(var(--split-scale));
+  transform-origin: 21% 52%;
+  background: radial-gradient(30% 85% at 0% 100%, #000 30%, rgba(0, 0, 0, 0.85) 55%, transparent 80%);
+}
+.tech-slab-right {
+  transform: translate3d(var(--split-right-x), var(--split-y), 0) scale(var(--split-scale));
+  transform-origin: 79% 52%;
+  background: radial-gradient(30% 85% at 100% 100%, #000 30%, rgba(0, 0, 0, 0.85) 55%, transparent 80%);
+}
+.tech-slab-icon {
+  position: absolute;
+  bottom: calc(8% + var(--i) * 6%);
+  color: rgba(244, 241, 234, 0.16);
+}
+.tech-slab-left .tech-slab-icon {
+  left: calc(2% + var(--i) * 3%);
+}
+.tech-slab-right .tech-slab-icon {
+  right: calc(2% + var(--i) * 3%);
+}
+.tech-slab-icon:nth-child(even) {
+  bottom: calc(6% + var(--i) * 7%);
+  transform: scale(0.75);
+}
+
+/* Intro copy under the title. */
+.tech-intro {
+  left: 50%;
+  bottom: 8vh;
+  z-index: 9;
+  width: min(470px, calc(100vw - 40px));
+  text-align: center;
+  transform: translate3d(-50%, var(--intro-y), 0);
+  opacity: var(--intro-opacity);
+  will-change: transform, opacity;
+  pointer-events: none;
+}
+.tech-intro p {
+  margin: 0 auto;
+  font-size: 1.15rem;
+  font-weight: 500;
+  line-height: 1.3;
+  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.6);
+}
+.tech-tags {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin: 26px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.tech-tags li {
+  display: inline-flex;
+  align-items: center;
+  min-height: 42px;
+  padding: 0 22px;
+  border-radius: 999px;
+  background: var(--cream);
+  color: var(--ink-dark);
+  font-size: 0.95rem;
+  font-weight: 500;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+}
+
+/* Story panels. */
+.tech-panel {
+  left: 50%;
+  z-index: 10;
+  width: min(760px, calc(100vw - 42px));
+  text-align: center;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+.tech-panel h3 {
+  margin: 0;
+  font-family: 'Playfair Display', 'Instrument Serif', serif;
+  font-size: 4.75rem;
+  font-weight: 400;
+  line-height: 0.98;
+  letter-spacing: -0.02em;
+  text-shadow: 0 16px 38px var(--shadow);
+}
+.tech-panel p {
+  width: min(540px, 100%);
+  margin: 26px auto 0;
+  font-size: 1.12rem;
+  font-weight: 500;
+  line-height: 1.35;
+  color: rgba(244, 241, 234, 0.86);
+  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.6);
+}
+.tech-panel-stack {
+  top: 58%;
+  opacity: var(--panel2-opacity);
+  transform: translate3d(-50%, var(--panel2-y), 0);
+}
+.tech-panel-security {
+  top: 40%;
+  opacity: var(--panel3-opacity);
+  transform: translate3d(-50%, var(--panel3-y), 0);
+}
+.tech-panel-shield {
+  display: block;
+  margin: 0 auto 22px;
+  color: #34d399;
+  filter: drop-shadow(0 0 18px rgba(52, 211, 153, 0.55));
+}
+.tech-facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 86px;
+  width: min(470px, 100%);
+  margin: 64px auto 0;
+}
+.tech-facts dt {
+  font-family: 'Playfair Display', 'Instrument Serif', serif;
+  font-size: 4.2rem;
+  line-height: 0.9;
+  font-variant-numeric: lining-nums;
+  text-shadow: 0 14px 34px var(--shadow);
+}
+.tech-facts dd {
+  margin: 16px 0 0;
+  font-size: 0.95rem;
+  font-weight: 500;
+  line-height: 1.2;
+  color: rgba(244, 241, 234, 0.72);
+}
+.tech-pill-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 50px;
+  margin-top: 28px;
+  padding: 0 26px;
+  border-radius: 999px;
+  background: var(--cream);
+  color: var(--ink-dark);
+  font-weight: 500;
+  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.35);
+  pointer-events: var(--panel3-pe);
+  transition: transform 0.3s ease, background 0.3s ease;
+}
+.tech-pill-link:hover {
+  transform: scale(1.04);
+  background: #fff;
+}
+
+/* Skill-group slider. */
+.tech-slider {
+  left: 0;
+  right: 0;
+  top: var(--slider-top);
+  z-index: 7;
+  transform: translate3d(var(--slider-enter-x), 0, 0);
+  opacity: var(--slider-opacity);
+  pointer-events: var(--slider-pe);
+  will-change: transform;
+}
+.tech-track {
+  display: flex;
+  gap: var(--gap);
+  align-items: stretch;
+  margin: 0;
+  padding: 0 0 0 var(--gutter);
+  list-style: none;
+  transform: translate3d(calc(var(--active) * -1 * (var(--card-w) + var(--gap))), 0, 0);
+  transition: transform 640ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+.tech-track.is-jumping {
+  transition: none;
+}
+.tech-card {
+  position: relative;
+  flex: 0 0 var(--card-w);
+  height: var(--card-h);
+  padding: 24px;
+  overflow: hidden;
+  border: 1px solid rgba(244, 241, 234, 0.42);
+  border-radius: 24px;
+  background: var(--cream);
+  color: #000;
+  box-shadow: 0 18px 52px rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.3s ease, transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.tech-card:hover {
+  transform: translateY(-4px);
+}
+.tech-card.is-active {
+  background: #fff;
+}
+.tech-card:focus-visible {
+  outline: 2px solid #34d399;
+  outline-offset: 3px;
+}
+.tech-card-kicker {
+  display: block;
+  font-family: 'Space Mono', ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  line-height: 1.1;
+  text-transform: uppercase;
+  color: rgba(0, 0, 0, 0.62);
+}
+.tech-card-pin {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--brand) 14%, #fff);
+  color: var(--brand);
+}
+.tech-card h3 {
+  position: absolute;
+  left: 24px;
+  right: 24px;
+  bottom: calc(24px + (15px * 1.25 * 3) + 12px);
+  max-width: calc(100% - 76px);
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tech-card p {
+  position: absolute;
+  left: 24px;
+  right: 24px;
+  bottom: 24px;
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.25;
+  color: rgba(0, 0, 0, 0.72);
+  display: -webkit-box;
+  max-height: calc(15px * 1.25 * 3);
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+.tech-controls {
+  left: var(--gutter);
+  top: calc(var(--slider-top) + var(--label-h) + var(--card-h) + 18px);
+  z-index: 8;
+  display: flex;
+  gap: 14px;
+  opacity: var(--controls-opacity);
+  pointer-events: none;
+  will-change: opacity;
+}
+.tech-controls.is-ready {
+  pointer-events: auto;
+}
+.tech-nav {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 54px;
+  height: 54px;
+  border-radius: 999px;
+  background: rgba(244, 241, 234, 0.94);
+  color: var(--ink-dark);
+  box-shadow: 0 18px 36px rgba(0, 0, 0, 0.35);
+  transition: transform 0.25s ease, background 0.25s ease;
+}
+.tech-nav:hover {
+  transform: scale(1.06);
+  background: #fff;
+}
+
+@media (max-width: 1500px) {
+  .tech-title {
+    font-size: 10.5rem;
+  }
+  .tech-panel h3 {
+    font-size: 4.1rem;
+  }
+}
+@media (max-width: 1100px) {
+  .tech-title {
+    top: 15vh;
+    font-size: 7.5rem;
+  }
+  .tech-arch {
+    width: calc(67.2vw * 1.3);
+  }
+  .tech-panel h3 {
+    font-size: 3.2rem;
+  }
+  .tech-facts {
+    gap: 34px;
+    margin-top: 44px;
+  }
+  .tech-facts dt {
+    font-size: 3.2rem;
+  }
+  .tech {
+    --card-w: clamp(300px, 40vw, 380px);
+  }
+}
+/* Portrait tablets: the arch fills the lower screen, so the intro moves up under the title. */
+@media (min-width: 641px) and (max-width: 1100px) and (orientation: portrait) {
+  .tech-intro {
+    bottom: auto;
+    top: calc(15vh + 8.5rem);
+  }
+}
+@media (max-width: 640px) {
+  .tech {
+    --card-w: min(82vw, 330px);
+    --gap: 12px;
+    --gutter: 20px;
+  }
+  .tech-stage {
+    min-height: 640px;
+  }
+  .tech-title {
+    top: 16vh;
+    font-size: 4.2rem;
+  }
+  .tech-arch {
+    /* ~87vw: the end tiles keep a ~20px gutter even once the scroll scale grows the arch. */
+    width: calc(67.2vw * 1.3);
+    aspect-ratio: 1.45 / 1;
+  }
+  .tech-tile {
+    left: var(--tile-left-phone);
+    bottom: var(--tile-bottom-phone);
+    gap: 6px;
+  }
+  .tech-tile-icon {
+    width: 44px;
+    border-radius: 14px;
+  }
+  .tech-tile-name {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+  .tech-slab {
+    opacity: 0.55;
+  }
+  .tech-slab-icon {
+    display: none;
+  }
+  .tech-arch-label {
+    font-size: 9px;
+    letter-spacing: 0.22em;
+  }
+  .tech-core-mark {
+    width: 52vw;
+  }
+  .tech-intro {
+    bottom: auto;
+    top: calc(16vh + 5.5rem);
+  }
+  .tech-intro p,
+  .tech-panel p {
+    font-size: 1rem;
+  }
+  .tech-tags {
+    gap: 8px;
+    margin-top: 18px;
+  }
+  .tech-tags li {
+    min-height: 36px;
+    padding: 0 14px;
+    font-size: 0.85rem;
+  }
+  .tech-panel-stack {
+    top: 46%;
+  }
+  .tech-panel-security {
+    top: 42%;
+  }
+  .tech-panel h3 {
+    font-size: 2.45rem;
+  }
+  .tech-facts {
+    gap: 18px;
+    margin-top: 34px;
+  }
+  .tech-facts dt {
+    font-size: 2.6rem;
+  }
+  .tech-card-pin {
+    width: 56px;
+    height: 56px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tech-track,
+  .tech-card,
+  .tech-tile-icon {
+    transition: none;
+  }
+}
+
+.tech-slider-label {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  height: var(--label-h);
+  margin: 0;
+  padding-left: var(--gutter);
+  font-family: 'Space Mono', ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: rgba(244, 241, 234, 0.6);
+}
+.tech-slider-label::after {
+  content: '';
+  width: 56px;
+  height: 1px;
+  background: #34d399;
+  box-shadow: 0 0 8px #34d399;
+}

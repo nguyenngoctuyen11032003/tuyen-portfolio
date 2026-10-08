@@ -34,7 +34,12 @@ export function WordsPullUp({
       <span className="sr-only">{text}</span>
       <span aria-hidden="true" className="contents">
       {words.map((word, i) => (
-        <span key={`${word}-${i}`} className="overflow-hidden inline-block mr-[0.25em] pb-1">
+        // The mask reaches above the cap height and below the descenders (negative margins keep the
+        // line spacing) so Vietnamese marks such as ầ, ế and the dot in ụ are never clipped.
+        <span
+          key={`${word}-${i}`}
+          className="overflow-hidden inline-block mr-[0.25em] pt-[0.3em] -mt-[0.3em] pb-[0.32em] -mb-[0.32em]"
+        >
           <motion.span
             className={`inline-block ${wordClassName}`}
             initial={{ y: '100%', opacity: 0 }}

@@ -1,196 +1,287 @@
-import { useEffect, useRef } from 'react';
-import gsap from 'gsap';
-import { ArrowRight, ChevronDown, Download } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { ArrowDown, ArrowRight, ArrowUpRight, Download, MoveHorizontal, ShieldCheck } from 'lucide-react';
 import { useLang } from '../context/LangContext';
 import { useIntroDone } from '../context/IntroContext';
 import { links } from '../data/content';
-import { WordsPullUp } from './ui/WordsPullUp';
-import { PillButton } from './ui/PillButton';
-import { TechIcon } from './ui/techIcons';
-
-export function splitAccent(headline: string, accent: string): [string, string, string] {
-  const idx = headline.indexOf(accent);
-  if (idx === -1) return [headline, '', ''];
-  return [headline.slice(0, idx).trim(), accent, headline.slice(idx + accent.length).trim()];
-}
+import { STARS_A, STARS_B } from './hero/stars';
+import { canRender3D } from './hero/webgl';
+import { useHanoiTime } from './hero/useHanoiTime';
+import { useHeroMotion } from './hero/useHeroMotion';
+import { splitAccent, splitName, splitStat } from './hero/text';
+import type { AvatarStage } from './hero/avatarStage';
+import illustration from '../assets/hero-illustration.webp';
+import illustration480 from '../assets/hero-illustration-480.webp';
+import './hero/hero.css';
 
 const TRAILING_PUNCTUATION = /^[.,!?;:]+$/;
+const NBSP = String.fromCharCode(0xa0);
+/** Glues an em dash to the word before it so a line never starts with "—". */
+const keepDash = (text: string) => text.replace(/ —/g, `${NBSP}—`);
+const COUNT_DELAY = 1250;
+const COUNT_DURATION = 900;
+const MODEL_URL = `${import.meta.env.BASE_URL}models/tuyen-avatar.glb`;
+
+type FigureState = 'loading' | 'ready' | 'failed';
 
 function prefersReducedMotion(): boolean {
   return typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 
-function useParticleAurora(canvasRef: React.RefObject<HTMLCanvasElement | null>) {
+/**
+ * Hero: the name set huge in Oswald (first word outlined), a one-line promise, credentials and
+ * CTAs on the left; on the right a full-body 3D scan of Tuyền bleeding off the bottom of the frame,
+ * turned by horizontal mouse travel. Without WebGL the illustrated portrait stands in.
+ */
+export function HeroSection() {
+  const { t, lang } = useLang();
+  const introDone = useIntroDone();
+  const time = useHanoiTime(lang);
+
+  const sectionRef = useRef<HTMLElement>(null);
+  const starfieldRef = useRef<HTMLDivElement>(null);
+  const copyRef = useRef<HTMLDivElement>(null);
+  const figureRef = useRef<HTMLElement>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const avatarRef = useRef<AvatarStage | null>(null);
+  const statRefs = useRef<(HTMLSpanElement | null)[]>([]);
+  const [motionRefs] = useState(() => ({
+    section: sectionRef,
+    starfield: starfieldRef,
+    copy: copyRef,
+    figure: figureRef,
+  }));
+
+  const [use3D] = useState(canRender3D);
+  const [figure, setFigure] = useState<FigureState>(use3D ? 'loading' : 'failed');
+  const [progress, setProgress] = useState(0);
+  const [ready, setReady] = useState(false);
+  const [settled, setSettled] = useState(false);
+
+  useHeroMotion(motionRefs);
+
+  // Entrance: wait for the cinematic intro, then start on the next frame.
   useEffect(() => {
-    const canvas = canvasRef.current;
-    const ctx = canvas?.getContext('2d');
-    if (!canvas || !ctx) return;
-
-    let width = (canvas.width = canvas.offsetWidth);
-    let height = (canvas.height = canvas.offsetHeight);
-
-    const particles = Array.from({ length: 60 }, () => ({
-      x: Math.random() * width,
-      y: Math.random() * height,
-      r: Math.random() * 1.5 + 0.5,
-      vx: (Math.random() - 0.5) * 0.15,
-      vy: (Math.random() - 0.5) * 0.15,
-    }));
-
-    let raf = 0;
-    function render(loop = true) {
-      if (!ctx) return;
-      ctx.clearRect(0, 0, width, height);
-
-      const gradient = ctx.createRadialGradient(
-        width * 0.3,
-        height * 0.3,
-        0,
-        width * 0.5,
-        height * 0.5,
-        width * 0.8
-      );
-      gradient.addColorStop(0, 'rgba(52, 211, 153, 0.1)');
-      gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
-      ctx.fillStyle = gradient;
-      ctx.fillRect(0, 0, width, height);
-
-      particles.forEach((p) => {
-        p.x += p.vx;
-        p.y += p.vy;
-        if (p.x < 0) p.x = width;
-        if (p.x > width) p.x = 0;
-        if (p.y < 0) p.y = height;
-        if (p.y > height) p.y = 0;
-
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(110, 231, 183, 0.6)';
-        ctx.fill();
-      });
-
-      if (loop) raf = requestAnimationFrame(() => render(true));
-    }
+    if (!introDone) return;
     const reduced = prefersReducedMotion();
-    render(!reduced);
+    const start = window.setTimeout(() => setReady(true), reduced ? 0 : 120);
+    const settle = window.setTimeout(() => setSettled(true), reduced ? 0 : 3200);
+    return () => {
+      window.clearTimeout(start);
+      window.clearTimeout(settle);
+    };
+  }, [introDone]);
 
-    function handleResize() {
-      if (!canvas) return;
-      width = canvas.width = canvas.offsetWidth;
-      height = canvas.height = canvas.offsetHeight;
-      if (reduced) render(false);
-    }
-    window.addEventListener('resize', handleResize);
-
+  // Count the stat numbers up once the entrance reaches them (values are the same in both
+  // languages, so a language toggle does not replay it).
+  const statValues = t.hero.stats.map((s) => s.value).join('|');
+  useEffect(() => {
+    if (!ready || prefersReducedMotion()) return;
+    const values = statValues.split('|').map((v) => splitStat(v)[0]);
+    const els = statRefs.current;
+    let raf = 0;
+    let begin = 0;
+    const step = (now: number) => {
+      begin ||= now;
+      const p = Math.min(1, Math.max(0, (now - begin - COUNT_DELAY) / COUNT_DURATION));
+      const eased = 1 - Math.pow(1 - p, 3);
+      values.forEach((v, i) => {
+        const el = els[i];
+        if (el && v !== null) el.textContent = String(Math.round(v * eased));
+      });
+      if (p < 1) raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
     return () => {
       cancelAnimationFrame(raf);
-      window.removeEventListener('resize', handleResize);
+      values.forEach((v, i) => {
+        const el = els[i];
+        if (el && v !== null) el.textContent = String(v);
+      });
     };
-  }, [canvasRef]);
-}
+  }, [ready, statValues]);
 
-export function HeroSection() {
-  const { t } = useLang();
-  const introDone = useIntroDone();
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const layerRef = useRef<HTMLDivElement>(null);
-
-  useParticleAurora(canvasRef);
-
+  // Start downloading the 3D figure straight away (it streams in while the intro plays).
   useEffect(() => {
-    const layer = layerRef.current;
-    if (!layer || prefersReducedMotion()) return;
+    if (!use3D) return;
+    const canvas = canvasRef.current;
+    const container = stageRef.current;
+    const section = sectionRef.current;
+    if (!canvas || !container || !section) return;
+    let cancelled = false;
 
-    function handleMouseMove(e: MouseEvent) {
-      const cx = window.innerWidth / 2;
-      const cy = window.innerHeight / 2;
-      const x = ((e.clientX - cx) / cx) * 16;
-      const y = ((e.clientY - cy) / cy) * 16;
-      gsap.to(layer, { x, y, duration: 0.6, ease: 'power2.out' });
-    }
+    import('./hero/avatarStage')
+      .then(({ mountAvatar, avatarMode }) => {
+        if (cancelled) return;
+        avatarRef.current = mountAvatar({
+          canvas,
+          container,
+          section,
+          url: MODEL_URL,
+          mode: avatarMode(),
+          onProgress: setProgress,
+          onReady: () => setFigure('ready'),
+          onError: () => setFigure('failed'),
+        });
+      })
+      .catch(() => setFigure('failed'));
 
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, []);
+    return () => {
+      cancelled = true;
+      avatarRef.current?.dispose();
+      avatarRef.current = null;
+    };
+  }, [use3D]);
 
+  // Reveal the figure with the rest of the entrance.
+  useEffect(() => {
+    if (ready && figure === 'loading') avatarRef.current?.reveal();
+  }, [ready, figure, progress]);
+
+  const [first, rest] = splitName(t.hero.name);
   const [before, accent, after] = splitAccent(t.hero.headline, t.hero.accent);
-  const isAfterPunctuationOnly = TRAILING_PUNCTUATION.test(after);
+  const afterIsPunctuation = TRAILING_PUNCTUATION.test(after);
+
+  const sectionClass = [
+    'hero',
+    ready && 'is-ready',
+    settled && 'is-settled',
+    `is-figure-${figure}`,
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   return (
-    <section
-      id="hero"
-      className="relative min-h-screen flex flex-col overflow-hidden bg-black"
-    >
-      <div ref={layerRef} className="absolute inset-0 scale-110">
-        <canvas ref={canvasRef} className="w-full h-full" />
+    <section id="hero" ref={sectionRef} className={sectionClass} aria-labelledby="hero-name">
+      <div className="hero-starfield" ref={starfieldRef} aria-hidden="true">
+        <div className="hero-stars-a" style={{ boxShadow: STARS_A }} />
+        <div className="hero-stars-b" style={{ boxShadow: STARS_B }} />
       </div>
+      <div className="hero-horizon" aria-hidden="true" />
 
-      <div className="relative z-10 flex-1 flex flex-col justify-center min-w-0 w-full px-6 md:px-16 lg:px-24 py-32 gap-8 max-w-6xl">
-        <span className="liquid-glass inline-flex w-fit items-center gap-2 rounded-full px-4 py-1.5 text-xs font-medium text-primary">
-          <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-          {t.hero.badge}
-        </span>
+      <div className="hero-grid">
+        <div className="hero-copy" ref={copyRef}>
+          <div className="hero-head">
+            <p className="hero-badge hero-anim">
+              <span className="hero-badge-tile" aria-hidden="true">
+                <ShieldCheck size={16} strokeWidth={2.25} />
+              </span>
+              <span>{t.hero.badge}</span>
+            </p>
 
-        <h1 className="min-w-0 max-w-full text-[clamp(2.25rem,5.5vw,4.5rem)] font-serif leading-[1.1] md:max-w-3xl text-ink">
-          <WordsPullUp text={before} eager hold={!introDone} staggerDelay={0.05} />
-          {accent && <WordsPullUp text={accent} wordClassName="italic text-primary" eager hold={!introDone} staggerDelay={0.05} />}
-          {after &&
-            (isAfterPunctuationOnly ? (
-              <span className="italic text-primary">{after}</span>
-            ) : (
-              <WordsPullUp text={after} eager hold={!introDone} staggerDelay={0.05} />
-            ))}
-        </h1>
+            <h1 id="hero-name" className="hero-name" lang={lang}>
+              <span className="hero-name-mask">
+                <span className="hero-name-line is-outline">{first}</span>
+              </span>{' '}
+              <span className="hero-name-mask">
+                <span className="hero-name-line">{rest}</span>
+                <span className="hero-name-dot" aria-hidden="true" />
+              </span>
+            </h1>
+          </div>
 
-        <p className="text-white/60 text-sm md:text-base max-w-lg">{t.hero.subheading}</p>
+          <div className="hero-body">
+            <p className="hero-tagline hero-anim">
+              {keepDash(before)} <em>{afterIsPunctuation ? `${accent}${after}` : accent}</em>
+              {!afterIsPunctuation && after && `${after.startsWith('—') ? NBSP : ' '}${keepDash(after)}`}
+            </p>
+            <p className="hero-sub hero-anim">{t.hero.subheading}</p>
+          </div>
+        </div>
 
-        <div className="flex flex-wrap items-center gap-4">
-          <PillButton href="#projects" variant="solid">
-            {t.hero.ctaProjects}
-          </PillButton>
-          <PillButton
-            href={links.cv}
-            download
-            variant="glass"
-            className="inline-flex items-center gap-2"
-          >
-            <Download size={16} />
-            {t.hero.ctaCv}
-          </PillButton>
-          <PillButton
+        <figure className="hero-figure" ref={figureRef}>
+          <div className="hero-figure-glow" aria-hidden="true" />
+          <div className="hero-figure-stage" ref={stageRef}>
+            {use3D && (
+              <canvas ref={canvasRef} className="hero-avatar" role="img" aria-label={t.hero.figureAlt} />
+            )}
+            {figure === 'failed' && (
+              <img
+                className="hero-fallback"
+                src={illustration}
+                srcSet={`${illustration480} 480w, ${illustration} 820w`}
+                sizes="(min-width: 1024px) min(500px, 34vw), (min-width: 640px) 300px, calc(100vw - 32px)"
+                width={820}
+                height={1024}
+                alt={t.hero.portraitAlt}
+                loading="eager"
+                decoding="async"
+              />
+            )}
+          </div>
+          {figure === 'loading' && (
+            <span className="hero-loader" role="status">
+              <span className="hero-loader-bar" style={{ transform: `scaleX(${progress})` }} aria-hidden="true" />
+              {t.hero.loadingLabel} · {Math.round(progress * 100)}%
+            </span>
+          )}
+          <span className="hero-chip">
+            <i className="hero-chip-dot" aria-hidden="true" />
+            <span>
+              {t.hero.city} · <time dateTime={time.dateTime}>{time.label}</time>
+            </span>
+          </span>
+          {figure === 'ready' && (
+            <span className="hero-turn-hint" aria-hidden="true">
+              <MoveHorizontal size={14} />
+              {t.hero.turnHint}
+            </span>
+          )}
+        </figure>
+
+        <div className="hero-actions">
+          <a href="#projects" className="hero-glow hero-anim">
+            <span>{t.hero.ctaProjects}</span>
+            <ArrowRight size={16} aria-hidden="true" />
+            <span className="hero-glow-pool" aria-hidden="true" />
+          </a>
+          <a href={links.cv} download className="hero-ghost hero-anim">
+            <Download size={16} aria-hidden="true" />
+            <span>{t.hero.ctaCv}</span>
+          </a>
+          <a
             href={links.github}
             target="_blank"
             rel="noopener noreferrer"
             aria-label={`${t.hero.ctaGithub} (${t.a11y.openInNewTab})`}
-            variant="glass"
-            className="inline-flex items-center gap-2"
+            className="hero-link hero-anim"
           >
             {t.hero.ctaGithub}
-            <TechIcon name="GitHub" size={16} />
-          </PillButton>
-          <PillButton href="#contact" variant="glass" className="inline-flex items-center gap-2">
+            <ArrowUpRight size={15} aria-hidden="true" />
+          </a>
+          <a href="#contact" className="hero-link hero-anim">
             {t.hero.ctaContact}
-            <ArrowRight size={16} />
-          </PillButton>
+            <ArrowRight size={15} aria-hidden="true" />
+          </a>
+          <span className="hero-rail" aria-hidden="true">
+            <i className="hero-rail-packet" />
+          </span>
+          <a href="#about" className="hero-circle" aria-label={t.a11y.scrollDown}>
+            <ArrowDown size={16} aria-hidden="true" />
+          </a>
         </div>
 
-        <div className="flex flex-wrap items-center gap-x-10 gap-y-4 pt-6 border-t border-white/10">
-          {t.hero.stats.map((stat) => (
-            <div key={stat.label}>
-              <p className="text-2xl md:text-3xl font-serif text-ink">{stat.value}</p>
-              <p className="text-white/50 text-xs md:text-sm">{stat.label}</p>
-            </div>
-          ))}
-        </div>
+        <dl className="hero-stats" aria-label={t.hero.statsLabel}>
+          {t.hero.stats.map((stat, i) => {
+            const [num, suffix] = splitStat(stat.value);
+            return (
+              <div key={i} className="hero-stat hero-anim">
+                <dt>{stat.label}</dt>
+                <dd>
+                  {num === null ? (
+                    stat.value
+                  ) : (
+                    <>
+                      <span ref={(el) => void (statRefs.current[i] = el)}>{num}</span>
+                      {suffix && <em>{suffix}</em>}
+                    </>
+                  )}
+                </dd>
+              </div>
+            );
+          })}
+        </dl>
       </div>
-
-      <a
-        href="#about"
-        className="relative z-10 flex justify-center pb-10 text-white/50 hover:text-white transition-colors animate-bounce"
-        aria-label={t.a11y.scrollDown}
-      >
-        <ChevronDown size={22} />
-      </a>
     </section>
   );
 }
