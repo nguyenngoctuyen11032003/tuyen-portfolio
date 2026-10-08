@@ -30,6 +30,9 @@ function useOutro(sectionRef: React.RefObject<HTMLElement | null>) {
     let raf = 0;
     let visible = false;
     let written = '';
+    const overlayEl = section.querySelector<HTMLElement>('.outro-overlay');
+    const pillEl = section.querySelector<HTMLElement>('.outro-pill');
+    const footerEl = section.querySelector<HTMLElement>('.outro-footer');
     // One-shot sounds on the way down; each milestone re-arms below its lower threshold.
     const ms = {
       washStart: milestone(0.03, 0.01),
@@ -74,9 +77,10 @@ function useOutro(sectionRef: React.RefObject<HTMLElement | null>) {
       const next = `${overlay.toFixed(3)}|${pill.toFixed(3)}|${footer.toFixed(3)}`;
       if (next === written) return;
       written = next;
-      section.style.setProperty('--overlay', overlay.toFixed(3));
-      section.style.setProperty('--pill', pill.toFixed(3));
-      section.style.setProperty('--foot', footer.toFixed(3));
+      // Written on the one element that reads each, so a frame restyles three nodes, not the section.
+      (overlayEl ?? section).style.setProperty('--overlay', overlay.toFixed(3));
+      (pillEl ?? section).style.setProperty('--pill', pill.toFixed(3));
+      (footerEl ?? section).style.setProperty('--foot', footer.toFixed(3));
     };
     const schedule = () => {
       if (!raf && visible) raf = requestAnimationFrame(frame);

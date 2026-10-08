@@ -83,8 +83,10 @@ export interface SoundOptions {
 }
 
 export interface SoundSnapshot {
-  /** The user turned sound on. */
+  /** Sound is wanted: on by default, off only after the visitor turned it off. */
   enabled: boolean;
   /** The browser has Web Audio. */
   supported: boolean;
+  /** The audio context is running, i.e. a click / tap / key press has unlocked it. */
+  live: boolean;
 }

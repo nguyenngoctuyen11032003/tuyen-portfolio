@@ -158,7 +158,9 @@ export function ExperienceSection() {
   // The rail fills top-down as the list scrolls past the upper third of the viewport.
   const { scrollYProgress } = useScroll({ target: listRef, offset: ['start 65%', 'end 65%'] });
   const fill = useSpring(scrollYProgress, { stiffness: 140, damping: 30, restDelta: 0.001 });
-  const headTop = useTransform(fill, (v) => `${v * 100}%`);
+  // The head rides a track-tall rail moved by translateY (a % of its own height, i.e. the track's),
+  // so following the scroll never re-lays out the list the way animating `top` would.
+  const headY = useTransform(fill, (v) => `${v * 100}%`);
 
   // A soft chime when the rail fills to the end; re-arms once it drops back below 90%.
   const railDone = useRef(milestone(0.995, 0.9));
@@ -183,8 +185,23 @@ export function ExperienceSection() {
     return () => window.clearTimeout(id);
   }, [active]);
 
+  // The gradient on the career span repaints every frame, so it only runs while on screen.
+  const sectionRef = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const section = sectionRef.current;
+    if (!section || typeof IntersectionObserver === 'undefined') return;
+    const io = new IntersectionObserver(([entry]) => section.classList.toggle('is-live', entry.isIntersecting));
+    io.observe(section);
+    return () => io.disconnect();
+  }, []);
+
   return (
-    <section id="experience" aria-labelledby="experience-heading" className="exp bg-black py-24 md:py-36 px-6 noise-overlay">
+    <section
+      id="experience"
+      ref={sectionRef}
+      aria-labelledby="experience-heading"
+      className="exp bg-black py-24 md:py-36 px-6 noise-overlay"
+    >
       <div className="exp-glow" aria-hidden="true" />
 
       <div className="relative max-w-6xl mx-auto grid lg:grid-cols-12 gap-14 lg:gap-16">
@@ -229,7 +246,9 @@ export function ExperienceSection() {
         <ol ref={listRef} className="exp-list lg:col-span-7">
           <span className="exp-track" aria-hidden="true">
             <motion.span className="exp-fill" style={{ scaleY: fill }} />
-            <motion.span className="exp-head" style={{ top: headTop }} />
+            <motion.span className="exp-head-rail" style={{ y: headY }}>
+              <span className="exp-head" />
+            </motion.span>
           </span>
 
           {items.map((item, i) => (

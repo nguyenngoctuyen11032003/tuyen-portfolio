@@ -27,7 +27,7 @@ beforeEach(() => {
 });
 
 describe('SoundToggle', () => {
-  it('is off by default and labelled in Vietnamese', () => {
+  it('renders the off state, labelled in Vietnamese', () => {
     renderToggle();
     const btn = screen.getByRole('button', { name: 'Âm thanh' });
     expect(btn).toHaveAttribute('aria-pressed', 'false');

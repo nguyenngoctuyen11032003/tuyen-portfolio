@@ -61,6 +61,11 @@ const IDLE_AFTER = 1.8;
 const IDLE_RAMP = 1.5;
 const Y_AXIS = new Vector3(0, 1, 0);
 const X_AXIS = new Vector3(1, 0, 0);
+/** Scratch rotation reused by every drag step, so dragging allocates nothing per pointer move. */
+const STEP = new Quaternion();
+/** Frame interval (s) that counts as struggling (~45 fps), and how long it must last. */
+const SLOW_FRAME = 1 / 45;
+const SLOW_FOR = 1.5;
 
 /** Light rig per gallery mode; eased toward each frame. */
 const LIGHTS: Record<LightMode, { env: number; key: number; keyColor: Color; rim: number; exposure: number }> = {
@@ -131,6 +136,12 @@ export class ArtifactStage {
   // Tab switch.
   private switching: { from: number; to: number; dir: number; start: number; inStart: number | null } | null = null;
 
+  // Adaptive resolution: the canvas covers the whole section, so on a GPU that cannot keep up
+  // at full pixel ratio it steps down (never below 1) instead of dropping frames.
+  private pixelRatio = 1;
+  private frameAvg = 1 / 60;
+  private slowFor = 0;
+
   private clock = 0;
   private lastFrame = 0;
   private raf = 0;
@@ -145,7 +156,8 @@ export class ArtifactStage {
     this.light = options.light;
 
     const renderer = new WebGLRenderer({ canvas: options.canvas, alpha: true, antialias: true, powerPreference: 'high-performance' });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    this.pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+    renderer.setPixelRatio(this.pixelRatio);
     renderer.outputColorSpace = SRGBColorSpace;
     renderer.toneMapping = typeof NeutralToneMapping === 'number' ? NeutralToneMapping : ACESFilmicToneMapping;
     renderer.toneMappingExposure = LIGHTS[this.light].exposure;
@@ -415,8 +427,8 @@ export class ArtifactStage {
 
   private rotate(dx: number, dy: number) {
     const spin = this.rigs[this.active].spin;
-    spin.quaternion.premultiply(new Quaternion().setFromAxisAngle(Y_AXIS, dx));
-    spin.quaternion.premultiply(new Quaternion().setFromAxisAngle(X_AXIS, dy));
+    spin.quaternion.premultiply(STEP.setFromAxisAngle(Y_AXIS, dx));
+    spin.quaternion.premultiply(STEP.setFromAxisAngle(X_AXIS, dy));
     spin.quaternion.normalize();
   }
 
@@ -553,6 +565,18 @@ export class ArtifactStage {
 
   // ---------------------------------------------------------------- frame
 
+  private adaptResolution(interval: number) {
+    // A single long gap is a hitch (loading, a resumed tab), not a trend.
+    if (this.pixelRatio <= 1 || interval <= 0 || interval > 0.25) return;
+    this.frameAvg += (interval - this.frameAvg) * 0.1;
+    this.slowFor = this.frameAvg > SLOW_FRAME ? this.slowFor + interval : 0;
+    if (this.slowFor < SLOW_FOR) return;
+    this.pixelRatio = Math.max(1, this.pixelRatio - 0.25);
+    this.renderer.setPixelRatio(this.pixelRatio);
+    this.frameAvg = 1 / 60;
+    this.slowFor = 0;
+  }
+
   private resetPivot(rig: Rig, visible: boolean) {
     rig.pivot.visible = visible;
     rig.pivot.position.set(0, 0, 0);
@@ -563,8 +587,10 @@ export class ArtifactStage {
   private frame = (now: number) => {
     if (!this.running) return;
     this.raf = requestAnimationFrame(this.frame);
-    const dt = Math.min(0.05, (now - this.lastFrame) / 1000);
+    const interval = (now - this.lastFrame) / 1000;
+    const dt = Math.min(0.05, interval);
     this.lastFrame = now;
+    this.adaptResolution(interval);
     this.clock += dt;
     const reduced = this.o.reducedMotion;
 

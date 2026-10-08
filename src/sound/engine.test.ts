@@ -267,13 +267,23 @@ describe('createSoundEngine', () => {
     engine.subscribe(listener);
     engine.setEnabled(true);
     expect(storage.map.get(SOUND_STORAGE_KEY)).toBe('on');
-    expect(engine.getSnapshot()).toEqual({ enabled: true, supported: false });
+    expect(engine.getSnapshot()).toEqual({ enabled: true, supported: false, live: false });
     expect(listener).toHaveBeenCalledTimes(1);
     expect(engine.ready()).toBe(false);
   });
 
-  it('defaults to off and never creates a context on load', () => {
+  it('defaults to on, but creates no context until a gesture unlocks it', () => {
     const { engine } = setup();
+    expect(engine.isEnabled()).toBe(true);
+    engine.play('tap');
+    expect(FakeContext.instances).toHaveLength(0);
+    expect(engine.getSnapshot().live).toBe(false);
+    engine.unlock();
+    expect(FakeContext.instances).toHaveLength(1);
+  });
+
+  it("remembers an explicit 'off' and stays silent", () => {
+    const { engine } = setup({ stored: 'off' });
     expect(engine.isEnabled()).toBe(false);
     engine.unlock();
     engine.play('tap');

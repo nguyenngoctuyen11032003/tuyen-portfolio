@@ -90,6 +90,8 @@ export function AboutSection() {
     let raf = 0;
     let last = 0;
     let disposed = false;
+    /** Canvas area painted by the last frame (CSS px), cleared before the next one. */
+    let dirty: { x: number; y: number; w: number; h: number } | null = null;
 
 
     const resize = () => {
@@ -115,14 +117,17 @@ export function AboutSection() {
       s.rotY += (s.targetY - s.rotY) * k;
       s.labelX += (s.pointerX - s.labelX) * 0.2;
       s.labelY += (s.pointerY - s.labelY) * 0.2;
-      label.style.transform = `translate3d(${s.labelX.toFixed(1)}px, ${s.labelY.toFixed(1)}px, 0)`;
 
       const W = s.width;
       const H = s.height;
-      ctx.clearRect(0, 0, W, H);
-
+      // Layout reads first, then this frame's style write: never a forced synchronous restyle.
       const sr = section.getBoundingClientRect();
       const pr = portal.getBoundingClientRect();
+      label.style.transform = `translate3d(${s.labelX.toFixed(1)}px, ${s.labelY.toFixed(1)}px, 0)`;
+
+      // Only the window drawn last frame needs clearing, not the whole section-sized canvas.
+      if (dirty) ctx.clearRect(dirty.x, dirty.y, dirty.w, dirty.h);
+      dirty = null;
       const rcx = pr.left - sr.left + pr.width / 2;
       const rcy = pr.top - sr.top + pr.height / 2;
       const e = s.expansion;
@@ -138,6 +143,23 @@ export function AboutSection() {
         const pts = roundedRectPoints(w, h, s.radius * (1 - e) * scale).map((p) =>
           project(p, rx, ry, cx, cy)
         );
+        let minX = Infinity;
+        let minY = Infinity;
+        let maxX = -Infinity;
+        let maxY = -Infinity;
+        for (const [x, y] of pts) {
+          minX = Math.min(minX, x);
+          minY = Math.min(minY, y);
+          maxX = Math.max(maxX, x);
+          maxY = Math.max(maxY, y);
+        }
+        // Padded for the 1px outline and antialiasing.
+        dirty = {
+          x: Math.floor(minX) - 2,
+          y: Math.floor(minY) - 2,
+          w: Math.ceil(maxX - minX) + 5,
+          h: Math.ceil(maxY - minY) + 5,
+        };
         ctx.save();
         ctx.beginPath();
         pts.forEach(([x, y], i) => (i ? ctx!.lineTo(x, y) : ctx!.moveTo(x, y)));

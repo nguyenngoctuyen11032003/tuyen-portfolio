@@ -104,7 +104,9 @@ interface CinematicIntroProps {
  */
 export function CinematicIntro({ onComplete }: CinematicIntroProps) {
   const { t } = useLang();
-  const { enabled, setEnabled } = useSound();
+  const { enabled, supported, live, setEnabled } = useSound();
+  // Without Web Audio there is nothing to unlock, so "on" is as on as it gets.
+  const soundRunning = enabled && (live || !supported);
   const [soundJustOn, setSoundJustOn] = useState(false);
   const lines = useMemo(() => {
     const projects = t.projects.items;
@@ -226,21 +228,20 @@ export function CinematicIntro({ onComplete }: CinematicIntroProps) {
       <div className="intro-scanlines" aria-hidden="true" />
       {sweeping && <span className="intro-sweep" aria-hidden="true" />}
 
-      {(!enabled || soundJustOn) && (
+      {(!soundRunning || soundJustOn) && (
         <button
           type="button"
           className="intro-sound"
           data-sfx="off"
-          aria-pressed={enabled}
+          aria-pressed={soundRunning}
           onClick={() => {
-            if (!enabled) {
-              setEnabled(true);
-              setSoundJustOn(true);
-              window.setTimeout(() => setSoundJustOn(false), 1400);
-            }
+            // Sound is on by default; this click is also the gesture the browser needs to start it.
+            setEnabled(true);
+            setSoundJustOn(true);
+            window.setTimeout(() => setSoundJustOn(false), 1400);
           }}
         >
-          {enabled ? t.sound.introOn : t.sound.introCta}
+          {soundRunning ? t.sound.introOn : t.sound.introCta}
         </button>
       )}
       <button type="button" className="intro-skip" onClick={() => finish(true)}>

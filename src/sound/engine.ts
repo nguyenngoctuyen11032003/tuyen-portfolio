@@ -90,14 +90,15 @@ export function createSoundEngine(envArg?: SoundEnv): SoundEngine {
   let suspendTimer: ReturnType<typeof setTimeout> | null = null;
   let hideTimer: ReturnType<typeof setTimeout> | null = null;
 
-  let snapshot: SoundSnapshot = { enabled, supported };
+  let snapshot: SoundSnapshot = { enabled, supported, live: false };
   const listeners = new Set<() => void>();
 
+  /** On by default; only an explicit 'off' (the visitor turned it off) keeps it muted. */
   function readStored(): boolean {
     try {
-      return storage?.getItem(SOUND_STORAGE_KEY) === 'on';
+      return storage?.getItem(SOUND_STORAGE_KEY) !== 'off';
     } catch {
-      return false;
+      return true;
     }
   }
 
@@ -109,9 +110,18 @@ export function createSoundEngine(envArg?: SoundEnv): SoundEngine {
     }
   }
 
+  function isLive(): boolean {
+    try {
+      return graph !== null && graph.ctx.state === 'running';
+    } catch {
+      return false;
+    }
+  }
+
   function notify() {
-    if (snapshot.enabled !== enabled || snapshot.supported !== supported) {
-      snapshot = { enabled, supported };
+    const live = isLive();
+    if (snapshot.enabled !== enabled || snapshot.supported !== supported || snapshot.live !== live) {
+      snapshot = { enabled, supported, live };
     }
     for (const l of [...listeners]) {
       try {
@@ -186,7 +196,17 @@ export function createSoundEngine(envArg?: SoundEnv): SoundEngine {
   }
 
   function ensureGraph(): Graph | null {
-    if (!graph) graph = buildGraph();
+    if (!graph) {
+      graph = buildGraph();
+      if (graph) {
+        // Running / suspended changes drive the "click to start sound" hint.
+        try {
+          graph.ctx.addEventListener?.('statechange', () => notify());
+        } catch {
+          /* fake or very old contexts */
+        }
+      }
+    }
     return graph;
   }
 
@@ -365,7 +385,7 @@ export function createSoundEngine(envArg?: SoundEnv): SoundEngine {
     if (!g) return;
     if (docHidden()) return;
     primeSilence(g);
-    void resume(g);
+    void resume(g).then(notify);
   }
 
   function setEnabled(on: boolean): void {

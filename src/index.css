@@ -236,6 +236,8 @@ button:focus-visible {
   top: 0;
   left: 0;
   cursor: pointer;
+  /* The camera loop rewrites each card's fade every frame: keep it on the compositor. */
+  will-change: opacity;
 }
 .archive-card figure {
   position: relative;
@@ -246,6 +248,11 @@ button:focus-visible {
   border-radius: 3px;
   background: #0a0a0a;
   transition: transform 0.5s ease;
+  /* Depth dimming (--d, written by the camera loop every frame). Over this opaque card,
+     brightness(1 - d) looks the same as a black veil of alpha d, but it is applied on the
+     compositor instead of repainting the screenshot each frame. */
+  filter: brightness(calc(1 - var(--d, 0)));
+  will-change: filter;
 }
 .archive-card:hover figure {
   transform: scale(1.045);
@@ -255,7 +262,6 @@ button:focus-visible {
   position: absolute;
   inset: 0;
   border-radius: 3px;
-  background: rgba(0, 0, 0, var(--d, 0));
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.07);
   pointer-events: none;
 }
@@ -583,6 +589,8 @@ button:focus-visible {
   background: #fff;
   opacity: var(--overlay);
   pointer-events: none;
+  /* Scrubbed by scroll: fade on the compositor rather than repainting the whole viewport. */
+  will-change: opacity;
 }
 .outro-blend {
   position: relative;
@@ -1440,7 +1448,11 @@ button:focus-visible {
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  animation: gradient-shift 6s ease infinite;
+  /* background-position repaints every frame: run only while the section is on screen. */
+  animation: gradient-shift 6s ease infinite paused;
+}
+.exp.is-live .exp-span-to {
+  animation-play-state: running;
 }
 
 /* Scroll index: tracks the entry in the middle of the viewport. */
@@ -1509,8 +1521,15 @@ button:focus-visible {
   box-shadow: 0 0 10px rgba(52, 211, 153, 0.55);
   transform-origin: top;
 }
+.exp-head-rail {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  will-change: transform;
+}
 .exp-head {
   position: absolute;
+  top: 0;
   left: 50%;
   width: 7px;
   height: 7px;

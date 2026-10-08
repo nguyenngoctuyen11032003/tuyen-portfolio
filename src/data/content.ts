@@ -263,6 +263,8 @@ export interface Content {
     stateOff: string;
     introCta: string;
     introOn: string;
+    /** Sound is on but the browser waits for a first click. */
+    tapToStart: string;
   };
 }
 
@@ -848,6 +850,7 @@ export const content: Record<Lang, Content> = {
       stateOff: 'Đang tắt',
       introCta: 'BẬT ÂM THANH',
       introOn: 'ÂM THANH ĐÃ BẬT',
+      tapToStart: 'Nhấp để bật âm thanh',
     },
   },
   en: {
@@ -1362,6 +1365,7 @@ export const content: Record<Lang, Content> = {
       stateOff: 'Off',
       introCta: 'SOUND ON',
       introOn: 'SOUND ENABLED',
+      tapToStart: 'Click to start sound',
     },
   },
 };

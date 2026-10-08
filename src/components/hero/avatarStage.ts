@@ -56,13 +56,15 @@ export function mountAvatar(o: AvatarOptions): AvatarStage {
   renderer.setClearColor(0x000000, 0);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.05;
+  // Slightly under 1 with a lighter fill so the face keeps its shape (cheekbones, nose, eye sockets)
+  // instead of washing flat and chalky.
+  renderer.toneMappingExposure = 0.95;
 
   const scene = new THREE.Scene();
   const pmrem = new THREE.PMREMGenerator(renderer);
   const envTexture = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
   scene.environment = envTexture;
-  scene.environmentIntensity = 0.55;
+  scene.environmentIntensity = 0.42;
 
   // Night-studio lighting in the site's palette: warm key (the desk lamps), emerald rim, blue fill.
   const key = new THREE.DirectionalLight(0xffe2c4, 2.1);
@@ -71,7 +73,7 @@ export function mountAvatar(o: AvatarOptions): AvatarStage {
   rim.position.set(-2.2, 1.4, -1.8);
   const rim2 = new THREE.DirectionalLight(0x6ee7b7, 1.4);
   rim2.position.set(2.4, 0.8, -2);
-  const fill = new THREE.HemisphereLight(0x9db4ff, 0x05140e, 0.55);
+  const fill = new THREE.HemisphereLight(0x9db4ff, 0x05140e, 0.4);
   scene.add(key, rim, rim2, fill);
 
   const camera = new THREE.PerspectiveCamera(FOV, 1, 0.05, 50);
@@ -152,6 +154,7 @@ export function mountAvatar(o: AvatarOptions): AvatarStage {
   let visible = true;
   let last = 0;
   let readyFired = false;
+  let shownOpacity = '';
 
   const frame = (now: number) => {
     raf = 0;
@@ -173,7 +176,11 @@ export function mountAvatar(o: AvatarOptions): AvatarStage {
     pivot.rotation.y = current;
     pivot.scale.setScalar(1.028 - 0.028 * e);
     pivot.position.y = -0.03 * (1 - e);
-    o.canvas.style.opacity = model ? String(e) : '0';
+    const opacity = model ? String(e) : '0';
+    if (opacity !== shownOpacity) {
+      o.canvas.style.opacity = opacity;
+      shownOpacity = opacity;
+    }
 
     renderer.render(scene, camera);
     if (model && intro.playing && !readyFired) {
@@ -210,18 +217,21 @@ export function mountAvatar(o: AvatarOptions): AvatarStage {
       root.position.x -= centre.x;
       root.position.z -= centre.z;
       top = box.max.y;
+      const textures: THREE.Texture[] = [];
       root.traverse((child) => {
         const mesh = child as THREE.Mesh;
         if (!mesh.isMesh) return;
         const mat = mesh.material as THREE.MeshStandardMaterial;
         if (mat.map) mat.map.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
         mat.envMapIntensity = 0.8;
+        for (const tex of [mat.map, mat.normalMap, mat.roughnessMap, mat.metalnessMap]) if (tex) textures.push(tex);
       });
       pivot.add(root);
       model = root;
       layout();
-      // Compile up front so the first revealed frame does not hitch.
+      // Compile shaders and upload textures up front so the first revealed frame does not hitch.
       renderer.compile(scene, camera);
+      textures.forEach((tex) => renderer.initTexture(tex));
       o.onProgress(1);
       startIntro();
     },

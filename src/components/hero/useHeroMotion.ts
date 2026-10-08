@@ -34,21 +34,30 @@ export function useHeroMotion(refs: HeroMotionRefs) {
     let visible = true;
     let raf = 0;
     let last = 0;
+    let lastSx = '';
+    let lastSy = '';
 
     const apply = () => {
       const stars = refs.starfield.current;
       const copy = refs.copy.current;
       const figure = refs.figure.current;
-      if (stars) {
-        stars.style.setProperty('--sx', `${(x * STAR_X).toFixed(2)}px`);
-        stars.style.setProperty('--sy', `${(y * STAR_Y).toFixed(2)}px`);
-      }
+      // Read layout before this frame's style writes, so it never forces a synchronous restyle.
       const p = Math.min(1, Math.max(0, scroll / Math.max(1, section.offsetHeight)));
+      const sx = `${(x * STAR_X).toFixed(2)}px`;
+      const sy = `${(y * STAR_Y).toFixed(2)}px`;
+      if (stars && (sx !== lastSx || sy !== lastSy)) {
+        stars.style.setProperty('--sx', sx);
+        stars.style.setProperty('--sy', sy);
+        lastSx = sx;
+        lastSy = sy;
+      }
       if (copy) {
         copy.style.transform = scroll ? `translate3d(0, ${(scroll * -0.1).toFixed(2)}px, 0)` : '';
         copy.style.opacity = scroll ? (1 - p * 0.9).toFixed(3) : '';
       }
-      if (figure) figure.style.translate = scroll ? `0 ${(scroll * 0.12).toFixed(2)}px` : '';
+      // translate3d keeps the figure on its own layer while it drifts, so its blurred glow is
+      // not repainted on every scroll frame.
+      if (figure) figure.style.transform = scroll ? `translate3d(0, ${(scroll * 0.12).toFixed(2)}px, 0)` : '';
     };
 
     const tick = (now: number) => {

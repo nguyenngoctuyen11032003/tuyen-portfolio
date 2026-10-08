@@ -150,7 +150,10 @@ export function HeroSection() {
           section,
           url: MODEL_URL,
           mode: avatarMode(),
-          onProgress: setProgress,
+          // Download progress fires per network chunk; re-render the hero only when the shown
+          // whole percent changes, so the intro playing on top never stutters under it.
+          onProgress: (f) =>
+            setProgress((p) => (f < 1 && Math.round(f * 100) === Math.round(p * 100) ? p : f)),
           onReady: () => {
             setFigure('ready');
             if (readyRef.current) sfx.play('reveal', { intensity: 0.6, source: 'auto' });
