@@ -480,6 +480,70 @@ button:focus-visible {
   border-color: rgba(244, 241, 234, 0.75);
 }
 
+/* Cursor image trail (ImageTrail.tsx): pooled photo cards, positioned and animated from JS. */
+.image-trail {
+  --trail-size: clamp(92px, 8vw, 148px);
+  position: fixed;
+  inset: 0;
+  z-index: 290;
+  overflow: hidden;
+  pointer-events: none;
+  contain: strict;
+}
+.image-trail__card {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: var(--trail-size);
+  height: var(--trail-size);
+  margin: calc(var(--trail-size) / -2) 0 0 calc(var(--trail-size) / -2);
+  border-radius: 12px;
+  /* Not 0: an invisible-but-drawn card is rasterised up front, so its first deal never stalls. */
+  opacity: 0.001;
+  /* Each card keeps its own composited layer, so dealing one never repaints the others. */
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+  box-shadow:
+    0 18px 36px -12px rgba(0, 0, 0, 0.75),
+    0 5px 12px -5px rgba(0, 0, 0, 0.5);
+}
+.image-trail__card img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+  user-select: none;
+}
+/* Hairline rim and a faint glassy sheen from the top-left, like a print catching the light. */
+.image-trail__card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.16);
+  background: linear-gradient(155deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0) 38%);
+}
+/* Vertical light streaks left behind as the card drops. */
+.image-trail__streak {
+  position: absolute;
+  z-index: -1;
+  left: 7%;
+  right: 7%;
+  bottom: 88%;
+  height: 80%;
+  opacity: 0;
+  transform-origin: 50% 100%;
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(214, 222, 235, 0.13) 0 2px,
+    rgba(214, 222, 235, 0.03) 2px 5px,
+    transparent 5px 11px
+  );
+  -webkit-mask-image: linear-gradient(to top, #000, transparent);
+  mask-image: linear-gradient(to top, #000, transparent);
+}
+
 /* ---------------------------------------------------------------------------
    Contact outro (ContactSection.tsx). Static by default; with .is-scrubbed the
    section is pinned and JS feeds --overlay / --pill / --foot (0..1) from scroll:

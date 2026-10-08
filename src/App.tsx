@@ -14,6 +14,7 @@ import { ArtifactAtlas } from './components/artifacts/ArtifactAtlas';
 import { CertificationsSection } from './components/CertificationsSection';
 import { ContactSection } from './components/ContactSection';
 import { CursorDot } from './components/ui/CursorDot';
+import { ImageTrail } from './components/ui/ImageTrail';
 
 function App() {
   // Decided once on first render; the page itself renders underneath the intro.
@@ -38,6 +39,7 @@ function App() {
           <AnimatePresence>
             {!introDone && <CinematicIntro key="intro" onComplete={() => setIntroDone(true)} />}
           </AnimatePresence>
+          <ImageTrail />
           <CursorDot />
         </IntroDoneContext.Provider>
       </MotionConfig>
