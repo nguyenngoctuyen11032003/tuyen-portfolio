@@ -123,7 +123,10 @@ section.hero[id] {
   backdrop-filter: blur(12px) saturate(140%);
   border: 1px solid rgba(244, 241, 234, 0.08);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
-  font: 500 13px/1 Barlow, sans-serif;
+  font-family: var(--font-body);
+  font-weight: var(--weight-medium);
+  font-size: var(--text-sm);
+  line-height: var(--leading-none);
   color: rgba(244, 241, 234, 0.88);
   white-space: nowrap;
 }
@@ -159,8 +162,10 @@ section.hero[id] {
   flex-direction: column;
   margin: 0;
   padding-top: 0.18em;
-  font-family: Oswald, 'Arial Narrow', sans-serif;
-  font-weight: 500;
+  /* A wordmark, not a scale step: the size is fitted to the column from --r2, which was measured
+     at Oswald 500 with zero tracking, so weight, tracking and leading stay pinned here. */
+  font-family: var(--font-wordmark);
+  font-weight: var(--weight-medium);
   font-size: clamp(48px, calc(100cqi / var(--r2)), min(168px, 18vh));
   line-height: 0.94;
   letter-spacing: 0;
@@ -207,11 +212,11 @@ section.hero[id] {
 .hero-tagline {
   max-width: 24em;
   margin: 28px 0 0;
-  font-family: 'Playfair Display', serif;
-  font-weight: 400;
-  font-size: clamp(21px, 2.2vw, 34px);
-  line-height: 1.14;
-  letter-spacing: -0.01em;
+  font-family: var(--font-display);
+  font-weight: var(--weight-regular);
+  font-size: var(--text-2xl);
+  line-height: var(--leading-snug);
+  letter-spacing: var(--tracking-heading);
   color: var(--ink);
   text-wrap: balance;
 }
@@ -222,8 +227,10 @@ section.hero[id] {
 .hero-sub {
   max-width: 46em;
   margin: 16px 0 0;
-  font: 500 clamp(13.5px, 1.05vw, 15.5px) / 1.5 Barlow, sans-serif;
-  letter-spacing: 0.01em;
+  font-family: var(--font-body);
+  font-weight: var(--weight-medium);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
   color: rgba(244, 241, 234, 0.62);
 }
 
@@ -294,11 +301,12 @@ section.hero[id] {
   flex-direction: column;
   align-items: center;
   gap: 12px;
-  font: 500 11px/1 Barlow, sans-serif;
-  letter-spacing: 0.18em;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  line-height: var(--leading-none);
+  letter-spacing: var(--tracking-label);
   text-transform: uppercase;
-  font-variant-numeric: tabular-nums;
-  color: rgba(244, 241, 234, 0.5);
+  color: rgba(244, 241, 234, 0.55);
   white-space: nowrap;
 }
 .hero-loader::before {
@@ -333,10 +341,11 @@ section.hero[id] {
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(244, 241, 234, 0.12);
-  font: 600 11px/1 Barlow, sans-serif;
-  letter-spacing: 0.16em;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  line-height: var(--leading-none);
+  letter-spacing: var(--tracking-label);
   text-transform: uppercase;
-  font-variant-numeric: tabular-nums;
   color: rgba(244, 241, 234, 0.9);
   white-space: nowrap;
 }
@@ -370,8 +379,10 @@ section.hero[id] {
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(244, 241, 234, 0.08);
-  font: 500 11px/1 Barlow, sans-serif;
-  letter-spacing: 0.16em;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  line-height: var(--leading-none);
+  letter-spacing: var(--tracking-label);
   text-transform: uppercase;
   color: rgba(244, 241, 234, 0.62);
   white-space: nowrap;
@@ -411,8 +422,10 @@ section.hero[id] {
   border-radius: 14px;
   background: #040706;
   color: var(--ink);
-  font: 600 15px/1 Barlow, sans-serif;
-  letter-spacing: 0.01em;
+  font-family: var(--font-body);
+  font-weight: var(--weight-semibold);
+  font-size: var(--text-sm);
+  line-height: var(--leading-none);
   white-space: nowrap;
   box-shadow: inset 0 0 0 1px rgba(52, 211, 153, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.06);
   transition: transform 0.2s var(--ease-out);
@@ -499,7 +512,10 @@ section.hero[id] {
   border: 1px solid rgba(244, 241, 234, 0.22);
   background: rgba(244, 241, 234, 0.02);
   color: var(--ink);
-  font: 600 15px/1 Barlow, sans-serif;
+  font-family: var(--font-body);
+  font-weight: var(--weight-semibold);
+  font-size: var(--text-sm);
+  line-height: var(--leading-none);
   white-space: nowrap;
   transition: border-color 0.3s, background-color 0.3s;
 }
@@ -517,7 +533,10 @@ section.hero[id] {
   align-items: center;
   gap: 6px;
   min-height: 44px;
-  font: 500 15px/1 Barlow, sans-serif;
+  font-family: var(--font-body);
+  font-weight: var(--weight-medium);
+  font-size: var(--text-sm);
+  line-height: var(--leading-none);
   color: rgba(244, 241, 234, 0.8);
   white-space: nowrap;
   transition: color 0.3s;
@@ -636,9 +655,11 @@ section.hero[id] {
 }
 .hero-stat dd {
   margin: 0;
-  font-family: 'Playfair Display', serif;
-  font-size: 36px;
-  line-height: 1;
+  font-family: var(--font-display);
+  font-weight: var(--weight-regular);
+  font-size: var(--text-2xl);
+  line-height: var(--leading-none);
+  letter-spacing: var(--tracking-heading);
   font-variant-numeric: lining-nums tabular-nums;
   color: var(--ink);
 }
@@ -648,7 +669,10 @@ section.hero[id] {
 }
 .hero-stat dt {
   margin-top: 8px;
-  font: 500 13px/1.3 Barlow, sans-serif;
+  font-family: var(--font-body);
+  font-weight: var(--weight-medium);
+  font-size: var(--text-sm);
+  line-height: var(--leading-snug);
   color: rgba(244, 241, 234, 0.6);
 }
 
@@ -884,11 +908,6 @@ section.hero[id] {
   }
   .hero-tagline {
     margin-top: 28px;
-    font-size: 26px;
-    line-height: 1.16;
-  }
-  .hero-sub {
-    font-size: 14px;
   }
   .hero-figure {
     grid-area: figure;
@@ -949,7 +968,6 @@ section.hero[id] {
     height: 35px;
     margin-bottom: 20px;
     padding-right: 12px;
-    font-size: 12.5px;
   }
   .hero-badge-tile {
     width: 27px;
@@ -964,12 +982,9 @@ section.hero[id] {
   }
   .hero-tagline {
     margin-top: 16px;
-    font-size: 22px;
-    line-height: 1.25;
   }
   .hero-sub {
     margin-top: 12px;
-    font-size: 13.5px;
   }
   .hero-actions {
     order: 2;
@@ -1021,11 +1036,9 @@ section.hero[id] {
   .hero-stat {
     padding-left: 12px;
   }
-  .hero-stat dd {
-    font-size: 30px;
-  }
+  /* Three ~100px columns: the labels step down so they wrap to two lines, not three. */
   .hero-stat dt {
-    font-size: 12px;
+    font-size: var(--text-xs);
   }
 }
 

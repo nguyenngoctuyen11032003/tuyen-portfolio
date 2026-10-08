@@ -56,6 +56,8 @@
   --cream: #f4f1ea;
   --ink-dark: #0b0f0d;
   --shadow: rgba(0, 0, 0, 0.5);
+  /* Poster title size, shared with the intro offsets below so they track it. */
+  --title-size: clamp(3.5rem, 1rem + 7vw, 8rem);
 
   position: relative;
   height: calc(100vh + var(--scroll-length, 4100px));
@@ -185,7 +187,7 @@
   will-change: opacity;
 }
 
-/* Giant serif title. */
+/* Poster title: a positioned, scroll-scaled graphic, so it gets its own clamp (max 8rem). */
 .tech-title {
   left: 50%;
   top: clamp(122px, 19vh, 205px);
@@ -193,11 +195,11 @@
   width: min(94vw, 1780px);
   margin: 0;
   color: var(--cream);
-  font-family: 'Playfair Display', 'Instrument Serif', serif;
-  font-size: 13rem;
-  font-weight: 400;
-  line-height: 0.86;
-  letter-spacing: -0.03em;
+  font-family: var(--font-display);
+  font-size: var(--title-size);
+  font-weight: var(--weight-regular);
+  line-height: var(--leading-none);
+  letter-spacing: var(--tracking-display);
   text-align: center;
   white-space: nowrap;
   transform: translate3d(-50%, var(--title-y), 0) scale(var(--title-scale));
@@ -246,12 +248,14 @@
   bottom: 54%;
   margin: 0;
   transform: translateX(-50%);
-  font-family: 'Space Mono', ui-monospace, monospace;
-  font-size: 11px;
-  letter-spacing: 0.3em;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-regular);
+  line-height: var(--leading-normal);
+  letter-spacing: var(--tracking-label);
   text-transform: uppercase;
   white-space: nowrap;
-  color: rgba(244, 241, 234, 0.5);
+  color: rgba(244, 241, 234, 0.6);
 }
 .tech-tile {
   position: absolute;
@@ -284,8 +288,11 @@
   border-color: color-mix(in srgb, var(--brand) 55%, transparent);
 }
 .tech-tile-name {
-  font-size: 12px;
-  letter-spacing: 0.04em;
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  line-height: var(--leading-normal);
+  letter-spacing: var(--tracking-caps);
   color: rgba(244, 241, 234, 0.72);
   white-space: nowrap;
   text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6);
@@ -366,9 +373,11 @@
 }
 .tech-intro p {
   margin: 0 auto;
-  font-size: 1.15rem;
-  font-weight: 500;
-  line-height: 1.3;
+  font-family: var(--font-body);
+  font-size: var(--text-lg);
+  font-weight: var(--weight-medium);
+  line-height: var(--leading-normal);
+  letter-spacing: var(--tracking-body);
   text-shadow: 0 2px 18px rgba(0, 0, 0, 0.6);
 }
 .tech-tags {
@@ -388,8 +397,11 @@
   border-radius: 999px;
   background: var(--cream);
   color: var(--ink-dark);
-  font-size: 0.95rem;
-  font-weight: 500;
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  line-height: var(--leading-normal);
+  letter-spacing: var(--tracking-body);
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
 }
 
@@ -404,19 +416,21 @@
 }
 .tech-panel h3 {
   margin: 0;
-  font-family: 'Playfair Display', 'Instrument Serif', serif;
-  font-size: 4.75rem;
-  font-weight: 400;
-  line-height: 0.98;
-  letter-spacing: -0.02em;
+  font-family: var(--font-display);
+  font-size: var(--text-4xl);
+  font-weight: var(--weight-regular);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-display);
   text-shadow: 0 16px 38px var(--shadow);
 }
 .tech-panel p {
   width: min(540px, 100%);
   margin: 26px auto 0;
-  font-size: 1.12rem;
-  font-weight: 500;
-  line-height: 1.35;
+  font-family: var(--font-body);
+  font-size: var(--text-lg);
+  font-weight: var(--weight-medium);
+  line-height: var(--leading-normal);
+  letter-spacing: var(--tracking-body);
   color: rgba(244, 241, 234, 0.86);
   text-shadow: 0 2px 18px rgba(0, 0, 0, 0.6);
 }
@@ -444,17 +458,22 @@
   margin: 64px auto 0;
 }
 .tech-facts dt {
-  font-family: 'Playfair Display', 'Instrument Serif', serif;
-  font-size: 4.2rem;
-  line-height: 0.9;
+  font-family: var(--font-display);
+  font-size: var(--text-3xl);
+  font-weight: var(--weight-regular);
+  line-height: var(--leading-none);
+  letter-spacing: var(--tracking-display);
   font-variant-numeric: lining-nums;
   text-shadow: 0 14px 34px var(--shadow);
 }
 .tech-facts dd {
   margin: 16px 0 0;
-  font-size: 0.95rem;
-  font-weight: 500;
-  line-height: 1.2;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-regular);
+  line-height: var(--leading-normal);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
   color: rgba(244, 241, 234, 0.72);
 }
 .tech-pill-link {
@@ -467,7 +486,11 @@
   border-radius: 999px;
   background: var(--cream);
   color: var(--ink-dark);
-  font-weight: 500;
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  line-height: var(--leading-normal);
+  letter-spacing: var(--tracking-caps);
   box-shadow: 0 16px 34px rgba(0, 0, 0, 0.35);
   pointer-events: var(--panel3-pe);
   transition: transform 0.3s ease, background 0.3s ease;
@@ -529,10 +552,11 @@
 }
 .tech-card-kicker {
   display: block;
-  font-family: 'Space Mono', ui-monospace, monospace;
-  font-size: 11px;
-  letter-spacing: 0.12em;
-  line-height: 1.1;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-regular);
+  line-height: var(--leading-snug);
+  letter-spacing: var(--tracking-label);
   text-transform: uppercase;
   color: rgba(0, 0, 0, 0.62);
 }
@@ -548,16 +572,22 @@
   background: color-mix(in srgb, var(--brand) 14%, #fff);
   color: var(--brand);
 }
+.tech-card {
+  /* Height of the three-line description, which the title sits on top of. */
+  --card-copy-h: calc(var(--text-base) * var(--leading-normal) * 3);
+}
 .tech-card h3 {
   position: absolute;
   left: 24px;
   right: 24px;
-  bottom: calc(24px + (15px * 1.25 * 3) + 12px);
+  bottom: calc(24px + var(--card-copy-h) + 12px);
   max-width: calc(100% - 76px);
   margin: 0;
-  font-size: 24px;
-  font-weight: 700;
-  line-height: 1;
+  font-family: var(--font-body);
+  font-size: var(--text-xl);
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-snug);
+  letter-spacing: var(--tracking-heading);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -568,11 +598,14 @@
   right: 24px;
   bottom: 24px;
   margin: 0;
-  font-size: 15px;
-  line-height: 1.25;
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  font-weight: var(--weight-regular);
+  line-height: var(--leading-normal);
+  letter-spacing: var(--tracking-body);
   color: rgba(0, 0, 0, 0.72);
   display: -webkit-box;
-  max-height: calc(15px * 1.25 * 3);
+  max-height: var(--card-copy-h);
   overflow: hidden;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 3;
@@ -607,31 +640,16 @@
   background: #fff;
 }
 
-@media (max-width: 1500px) {
-  .tech-title {
-    font-size: 10.5rem;
-  }
-  .tech-panel h3 {
-    font-size: 4.1rem;
-  }
-}
 @media (max-width: 1100px) {
   .tech-title {
     top: 15vh;
-    font-size: 7.5rem;
   }
   .tech-arch {
     width: calc(67.2vw * 1.3);
   }
-  .tech-panel h3 {
-    font-size: 3.2rem;
-  }
   .tech-facts {
     gap: 34px;
     margin-top: 44px;
-  }
-  .tech-facts dt {
-    font-size: 3.2rem;
   }
   .tech {
     --card-w: clamp(300px, 40vw, 380px);
@@ -641,7 +659,7 @@
 @media (min-width: 641px) and (max-width: 1100px) and (orientation: portrait) {
   .tech-intro {
     bottom: auto;
-    top: calc(15vh + 8.5rem);
+    top: calc(15vh + var(--title-size) + 2rem);
   }
 }
 @media (max-width: 640px) {
@@ -655,7 +673,6 @@
   }
   .tech-title {
     top: 16vh;
-    font-size: 4.2rem;
   }
   .tech-arch {
     /* ~87vw: the end tiles keep a ~20px gutter even once the scroll scale grows the arch. */
@@ -684,20 +701,16 @@
   .tech-slab-icon {
     display: none;
   }
-  .tech-arch-label {
-    font-size: 9px;
-    letter-spacing: 0.22em;
-  }
   .tech-core-mark {
     width: 52vw;
   }
   .tech-intro {
     bottom: auto;
-    top: calc(16vh + 5.5rem);
+    top: calc(16vh + var(--title-size) + 2rem);
   }
   .tech-intro p,
   .tech-panel p {
-    font-size: 1rem;
+    font-size: var(--text-base);
   }
   .tech-tags {
     gap: 8px;
@@ -706,7 +719,6 @@
   .tech-tags li {
     min-height: 36px;
     padding: 0 14px;
-    font-size: 0.85rem;
   }
   .tech-panel-stack {
     top: 46%;
@@ -714,15 +726,9 @@
   .tech-panel-security {
     top: 42%;
   }
-  .tech-panel h3 {
-    font-size: 2.45rem;
-  }
   .tech-facts {
     gap: 18px;
     margin-top: 34px;
-  }
-  .tech-facts dt {
-    font-size: 2.6rem;
   }
   .tech-card-pin {
     width: 56px;
@@ -744,9 +750,11 @@
   height: var(--label-h);
   margin: 0;
   padding-left: var(--gutter);
-  font-family: 'Space Mono', ui-monospace, monospace;
-  font-size: 11px;
-  letter-spacing: 0.3em;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-regular);
+  line-height: var(--leading-normal);
+  letter-spacing: var(--tracking-label);
   text-transform: uppercase;
   color: rgba(244, 241, 234, 0.6);
 }

@@ -60,19 +60,19 @@ export function ProjectDetailModal({ project, initialImage = 0, onClose }: Proje
               />
             </div>
           )}
-          <p className="text-white/40 text-xs tracking-widest uppercase mb-3">
+          <p className="type-label text-white/45 mb-3">
             {project.role} · {project.scope}
           </p>
-          <h3 className="text-ink text-2xl font-serif mb-4">{project.title}</h3>
-          <p className="text-white/50 text-sm mb-4">{project.years}</p>
+          <h3 className="type-h3 text-ink mb-4">{project.title}</h3>
+          <p className="type-small text-white/55 mb-4">{project.years}</p>
           {project.description && (
-            <p className="text-white/70 text-sm leading-relaxed mb-4">{project.description}</p>
+            <p className="type-body text-white/70 mb-4">{project.description}</p>
           )}
           {project.highlights && project.highlights.length > 0 && (
             <ul className="space-y-2 mb-5 list-none p-0">
               {project.highlights.map((item) => (
-                <li key={item} className="flex gap-3 text-white/65 text-sm leading-relaxed">
-                  <span className="mt-2 h-1 w-1 rounded-full bg-emerald-300/80 flex-shrink-0" aria-hidden="true" />
+                <li key={item} className="type-body flex gap-3 text-white/65">
+                  <span className="mt-[0.7em] h-1 w-1 rounded-full bg-emerald-300/80 flex-shrink-0" aria-hidden="true" />
                   {item}
                 </li>
               ))}

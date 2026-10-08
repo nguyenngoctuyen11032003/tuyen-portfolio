@@ -80,14 +80,14 @@ export function ProjectGallery({ images, labels, initialIndex = 0 }: ProjectGall
             >
               <ChevronRight size={18} className="text-white/90" />
             </button>
-            <span className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-sm border border-white/15 rounded-full px-2.5 py-1 text-[11px] text-white/80 tabular-nums">
+            <span className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-sm border border-white/15 rounded-full px-2.5 py-1 font-mono text-xs text-white/80 tabular-nums">
               {index + 1} / {count}
             </span>
           </>
         )}
       </div>
 
-      <p className="text-white/50 text-xs mt-2.5" aria-live="polite">
+      <p className="type-small text-white/55 mt-2.5" aria-live="polite">
         {current.alt}
       </p>
 

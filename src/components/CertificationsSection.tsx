@@ -61,7 +61,7 @@ export function CertificationsSection() {
       <div className="cert-head">
         <div>
           <h2 id="certifications-heading" className="cert-label">
-            <span className="text-white/40">[ 07 ]</span> {c.heading}
+            <span className="text-white/45">[ 07 ]</span> {c.heading}
           </h2>
           <motion.p
             className="cert-statement"
@@ -198,7 +198,7 @@ export function CertificationsSection() {
                         className="overflow-hidden"
                       >
                         <div className="cert-details">
-                          <p className="text-ink text-base md:text-lg">{item.name}</p>
+                          <p className="type-lead text-ink">{item.name}</p>
                           {(item.issuer || item.issued || item.validUntil) && (
                             <dl className="cert-facts cert-mono">
                               {item.issuer && (
@@ -221,10 +221,10 @@ export function CertificationsSection() {
                               )}
                             </dl>
                           )}
-                          {item.summary && <p className="text-white/60 text-sm leading-relaxed max-w-2xl">{item.summary}</p>}
+                          {item.summary && <p className="type-body text-white/60">{item.summary}</p>}
                           {item.skills && item.skills.length > 0 && (
                             <div>
-                              <p className="cert-mono text-white/35 mb-2">{c.skillsLabel}</p>
+                              <p className="cert-mono text-white/45 mb-2">{c.skillsLabel}</p>
                               <ul className="flex flex-wrap gap-2 list-none p-0">
                                 {item.skills.map((skill) => (
                                   <li key={skill} className="cert-skill">

@@ -349,15 +349,15 @@ export function AboutSection() {
       </nav>
 
       <div className="about-intro about-chrome">
-        <p className="about-eyebrow">
+        <p className="about-eyebrow type-label">
           {pad(index + 1)} — {t.about.label}
         </p>
-        <h2 id="about-heading" className="text-2xl md:text-4xl font-serif text-ink leading-tight mb-5">
+        <h2 id="about-heading" className="about-heading type-h2 text-ink">
           <WordsPullUp text={t.about.heading} />
         </h2>
-        <p className="text-white/70 text-sm md:text-[15px] leading-relaxed">
+        <p className="type-body text-white/70">
           {t.about.paragraphPlain}{' '}
-          <em className="font-serif italic text-primary">{t.about.paragraphItalic}</em>
+          <em className="type-accent text-primary">{t.about.paragraphItalic}</em>
           {t.about.paragraphPlainEnd}
         </p>
       </div>

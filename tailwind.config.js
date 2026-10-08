@@ -7,12 +7,14 @@ export default {
         primary: '#34D399',
         ink: '#F4F1EA',
       },
+      // Mirrors the type tokens in src/index.css (:root).
       fontFamily: {
-        serif: ['"Playfair Display"', '"Instrument Serif"', 'serif'],
-        body: ['Barlow', 'sans-serif'],
+        serif: ['var(--font-display)'],
+        body: ['var(--font-body)'],
+        mono: ['var(--font-mono)'],
+        wordmark: ['var(--font-wordmark)'],
       },
     },
   },
   plugins: [],
 };
-

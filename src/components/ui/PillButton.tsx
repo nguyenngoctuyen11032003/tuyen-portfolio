@@ -39,7 +39,7 @@ export function PillButton({
 }: PillButtonProps) {
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const base =
-    'rounded-full px-6 py-3 text-sm font-medium transition-all duration-200 hover:scale-[1.03] active:scale-[0.97]';
+    'rounded-full px-6 py-3 font-body type-small font-medium transition-all duration-200 hover:scale-[1.03] active:scale-[0.97]';
   const variantClass = variant === 'solid' ? 'bg-primary text-black' : 'liquid-glass text-white';
   const classes = `${base} ${variantClass} ${className}`;
   // The solid pill is the primary action: the click delegate plays `press` instead of `tap`.

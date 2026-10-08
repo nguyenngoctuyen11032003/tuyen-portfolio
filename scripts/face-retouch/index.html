@@ -17,13 +17,22 @@ window.renderFace = async (url, opts = {}) => {
   scene.background = new THREE.Color(0x1a1a1a);
   const pm = new THREE.PMREMGenerator(renderer);
   scene.environment = pm.fromScene(new RoomEnvironment(), 0.04).texture;
-  scene.add(new THREE.DirectionalLight(0xffffff, 1.6).translateX(1).translateY(2).translateZ(3));
+  if (opts.site) {
+    // Same lights / exposure / material tweaks as src/components/hero/avatarStage.ts.
+    renderer.toneMappingExposure = 0.95;
+    scene.background = new THREE.Color(0x000000);
+    scene.environmentIntensity = 0.42;
+    const add = (c, i, x, y, z) => { const l = new THREE.DirectionalLight(c, i); l.position.set(x, y, z); scene.add(l); };
+    add(0xffe6cf, 2.4, 1.6, 2.2, 2.4); add(0xdfe6ff, 0.55, -2.4, 0.6, 1.6); add(0xeef3ff, 1.6, 0.4, 2.6, -2.2); add(0x34d399, 1.1, -2.2, 1.0, -1.8);
+    scene.add(new THREE.HemisphereLight(0xb8c4e6, 0x0a0d10, 0.35));
+  } else scene.add(new THREE.DirectionalLight(0xffffff, 1.6).translateX(1).translateY(2).translateZ(3));
   const loader = new GLTFLoader(); loader.setMeshoptDecoder(MeshoptDecoder);
   const gltf = await loader.loadAsync(url);
   const root = gltf.scene;
   const box = new THREE.Box3().setFromObject(root);
   root.position.sub(box.getCenter(new THREE.Vector3()));
   if (opts.clay) root.traverse((o) => { if (o.isMesh) o.material = new THREE.MeshStandardMaterial({ color: 0xb9b2aa, roughness: 0.75 }); });
+  if (opts.site) root.traverse((o) => { if (o.isMesh) { const m = o.material; m.envMapIntensity = 0.6; m.roughness = 1.4; m.metalness = 0; m.normalScale?.set(1.5, 1.5); } });
   if (opts.unlit) root.traverse((o) => { if (o.isMesh) o.material = new THREE.MeshBasicMaterial({ map: o.material.map }); });
   const pivot = new THREE.Group(); pivot.add(root); pivot.rotation.y = (opts.yaw ?? 0) * Math.PI / 180; scene.add(pivot);
   const h = box.max.y - box.min.y;

@@ -210,12 +210,12 @@ function BentoCard({ project, span, origin, onOpen }: BentoCardProps) {
           </div>
 
           <div className="bento-body">
-            <p className="text-white/40 text-[11px] tracking-[0.22em] uppercase">
+            <p className="type-label text-white/45">
               {project.scope} · {project.years}
             </p>
-            <h3 className="mt-2 text-ink text-xl md:text-2xl font-medium tracking-tight">{project.title}</h3>
+            <h3 className="type-title mt-2 text-ink">{project.title}</h3>
             {project.description && (
-              <p className="mt-2 text-white/55 text-sm leading-relaxed line-clamp-2">{project.description}</p>
+              <p className="type-small mt-2 text-white/60 line-clamp-2">{project.description}</p>
             )}
             {project.tags && project.tags.length > 0 && (
               <div className="flex flex-wrap gap-1.5 mt-4">
@@ -263,15 +263,15 @@ export function ProjectsSection() {
           onViewportEnter={() => sfx.play('reveal', { intensity: 0.5, source: 'auto' })}
         >
           <div>
-            <p className="flex items-center gap-3 text-white/45 text-xs uppercase tracking-[0.3em] mb-5">
+            <p className="type-label flex items-center gap-3 text-white/45 mb-5">
               <span className="block w-8 h-px bg-white/25" aria-hidden="true" />
               {t.projects.eyebrow}
             </p>
-            <h2 id="projects-heading" className="text-4xl md:text-6xl text-ink tracking-tight leading-[1.02]">
-              {before} {accent && <em className="font-serif italic font-normal text-primary">{accent}</em>}
+            <h2 id="projects-heading" className="type-h2 text-ink">
+              {before} {accent && <em className="type-accent text-primary">{accent}</em>}
               {after && ` ${after}`}
             </h2>
-            <p className="mt-4 text-white/55 text-sm md:text-base max-w-md">{t.projects.intro}</p>
+            <p className="type-body mt-4 text-white/60 max-w-md">{t.projects.intro}</p>
           </div>
           <a href="#archive" className="gradient-ring-btn hidden md:inline-flex" data-sfx="press">
             <span>
@@ -305,9 +305,9 @@ export function ProjectsSection() {
           ))}
         </ul>
 
-        <div className="mt-14 pt-6 border-t border-white/10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 font-['Space_Mono',monospace] text-[10px] md:text-[11px] tracking-[0.2em] uppercase text-white/45">
+        <div className="mt-14 pt-6 border-t border-white/10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 type-label text-white/60">
           <p>{t.projects.also}</p>
-          <p className="text-white/30">
+          <p className="text-white/45">
             {t.projects.items.length} {t.archive.projects} · {yearSpan(t.projects.items)}
           </p>
         </div>

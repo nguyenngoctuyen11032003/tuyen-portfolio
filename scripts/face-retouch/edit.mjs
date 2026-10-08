@@ -79,33 +79,37 @@ function blur(img, w, h, r) {
 // Pixel coordinates were read off closeup-y*.png (1000 px = 0.2 m).
 const VIEWS = [
   {
+    // Skin clean-up only: the side of the nose bridge and the glabella are only seen from here.
+    name: 'y45',
+    yaw: 45,
+    view: { size: SIZE, cx: 0.04, cy: 0.8, scale: SIZE / 0.2 },
+    skin: [[[380, 160], [520, 160], [560, 320], [560, 450], [450, 495], [290, 545], [230, 700], [150, 880], [20, 880], [20, 420], [200, 390], [380, 300]]],
+    brows: [], paint: [], clean: [], irises: [], lids: [], lash: [],
+  },
+  {
     // Turned so the eye behind the cup (viewer's left) is visible.
     name: 'y25',
     yaw: 25,
     view: { size: SIZE, cx: 0.04, cy: 0.8, scale: SIZE / 0.2 },
     brows: [],
-    paint: [{ poly: [[438, 385], [436, 394], [429, 401], [420, 403], [411, 401], [404, 394], [402, 385], [404, 376], [411, 369], [420, 367], [429, 369], [436, 376]], from: [445, 405, 460, 417] }],
+    paint: [],
     clean: [],
     irises: [[205, 425, 330, 470]],
     lids: [{ x0: 200, x1: 335, top: 398, lid: 426, anchor: 470, amount: 9 }],
     lash: [{ box: [200, 400, 335, 470], above: 2, below: 7, strength: 0.55 }],
-    shade: [
-      { kind: 'ellipse', cx: 268, cy: 436, rx: 95, ry: 42, rot: -0.12, f: 0.35, k: 0.90 }, // left socket
-    ],
+    skin: [[[500, 40], [720, 40], [820, 250], [850, 450], [840, 880], [760, 880], [735, 600], [660, 470], [200, 472], [150, 420], [150, 330], [300, 300], [440, 300]]],
   },
   {
     name: 'y-25',
     yaw: -25,
-    view: { size: SIZE, cx: -0.0, cy: 0.8, scale: SIZE / 0.2 },
+    view: { size: SIZE, cx: 0.04, cy: 0.8, scale: SIZE / 0.2 },
     brows: [],
     paint: [{ poly: [[318, 380], [316, 389], [309, 396], [300, 398], [291, 396], [284, 389], [282, 380], [284, 371], [291, 364], [300, 362], [309, 364], [316, 371]], from: [330, 400, 345, 412] }],
     clean: [],
     irises: [],
     lids: [],
     lash: [],
-    shade: [
-      { kind: 'poly', poly: [[690, 480], [760, 500], [860, 560], [900, 640], [860, 700], [760, 640], [690, 560]], f: 30, k: 0.93 }, // under the right cheekbone
-    ],
+    skin: [[[300, 40], [640, 40], [760, 250], [850, 520], [870, 800], [820, 950], [600, 1000], [470, 1000], [450, 800], [410, 690], [400, 480], [300, 480], [210, 420], [210, 330]]],
   },
   {
     name: 'y0',
@@ -116,18 +120,46 @@ const VIEWS = [
       [[150, 350], [240, 330], [330, 345], [338, 368], [330, 392], [240, 382], [150, 398]],
     ],
     paint: [{ poly: [[350, 341], [374, 356], [398, 380], [398, 404], [350, 404], [338, 394], [331, 380], [332, 364], [340, 350]], from: [418, 392, 436, 404] }],
-    clean: [[280, 290, 372, 340], [505, 378, 712, 420]],
+    clean: [[280, 290, 400, 345], [505, 378, 712, 420]],
     irises: [[535, 400, 660, 470]],
     lids: [{ x0: 500, x1: 715, top: 383, lid: 405, anchor: 462, amount: 15 }],
     lash: [{ box: [505, 385, 725, 475], above: 2, below: 8, strength: 0.6 }],
-    shade: [
-      { kind: 'ellipse', cx: 612, cy: 438, rx: 135, ry: 48, rot: 0.08, f: 0.35, k: 0.90 }, // right socket
-      { kind: 'ellipse', cx: 255, cy: 440, rx: 95, ry: 42, rot: -0.1, f: 0.35, k: 0.92 }, // left socket (visible part)
-      { kind: 'poly', poly: [[352, 395], [392, 395], [398, 450], [392, 520], [352, 520]], f: 22, k: 0.86 }, // nose, shadow side
-      { kind: 'poly', poly: [[438, 400], [470, 400], [478, 460], [470, 520], [440, 520]], f: 22, k: 0.94 }, // nose, lit side
-      { kind: 'poly', poly: [[600, 560], [700, 580], [840, 640], [880, 720], [820, 760], [700, 690], [600, 630]], f: 32, k: 0.93 }, // under the right cheekbone
-      { kind: 'poly', poly: [[430, 300], [470, 300], [460, 380], [420, 380]], f: 24, k: 0.95 }, // glabella / between the brows
-    ],
+    skin: [[[400, 40], [720, 40], [860, 230], [900, 480], [890, 780], [600, 800], [585, 620], [540, 470], [430, 445], [170, 445], [160, 330], [300, 300], [400, 280]]],
+  },
+  // Eye repaints on 0.05 m close-ups (20 px per mm), baked last so they win. Each eye in the scan is
+  // only ~40 x 15 texels of grey mush; it is redrawn as a crisp, high-contrast eye: black upper lash
+  // line with an outer flick, dark-brown iris with pupil and limbal ring, clean sclera shaded under
+  // the lid, a catch-light, a soft lower lash line and lid crease. Coordinates from
+  // `node closeup.mjs <out> <yaw> <cx> <cy> 0.05 1000`.
+  {
+    // Viewer's-left eye (the one seen in the turned pose); outer corner on the left.
+    name: 'eyeL',
+    yaw: 50,
+    view: { size: SIZE, cx: 0.0, cy: 0.81, scale: SIZE / 0.05 },
+    brows: [], paint: [], clean: [], irises: [], lids: [], lash: [],
+    skin: [[[80, 330], [940, 330], [940, 720], [80, 720]]],
+    eyes: [{
+      outer: 'left',
+      upper: [[150, 528], [250, 512], [400, 482], [550, 462], [700, 468], [800, 482], [860, 490]],
+      lower: [[150, 530], [300, 590], [450, 622], [600, 636], [720, 608], [820, 545], [860, 494]],
+      iris: { cx: 648, cy: 548, rx: 108, ry: 124 },
+      lash: 44, crease: 75,
+    }],
+  },
+  {
+    // Viewer's-right eye (front view); outer corner on the right.
+    name: 'eyeR',
+    yaw: 0,
+    view: { size: SIZE, cx: 0.062, cy: 0.812, scale: SIZE / 0.05 },
+    brows: [], paint: [], clean: [], irises: [], lids: [], lash: [],
+    skin: [[[60, 260], [960, 260], [960, 720], [60, 720]]],
+    eyes: [{
+      outer: 'right',
+      upper: [[110, 512], [180, 462], [300, 428], [500, 426], [700, 442], [830, 472], [900, 502]],
+      lower: [[110, 516], [250, 576], [400, 596], [550, 590], [700, 566], [830, 536], [900, 506]],
+      iris: { cx: 418, cy: 484, rx: 124, ry: 128 },
+      lash: 44, crease: 90,
+    }],
   },
 ];
 
@@ -135,10 +167,63 @@ const VIEWS = [
 function editImage(R, v) {
   const E = Float32Array.from(R);
   const W = new Float32Array(SIZE * SIZE);
+  const S = new Float32Array(SIZE * SIZE); // skin clean-up weight, baked into face-mask.png
   const ref = blur(R, SIZE, SIZE, 9);
   const px = (x, y) => (y * SIZE + x) * 3;
   const isSkinAt = (i) => sat(ref[i], ref[i + 1], ref[i + 2]) > 0.12 && lum(ref[i], ref[i + 1], ref[i + 2]) > 140 && ref[i] > ref[i + 2];
   const mark = (x, y, k) => { W[y * SIZE + x] = Math.max(W[y * SIZE + x], k); };
+
+  // 0. Skin clean-up: inside the face regions, creases (frown lines, the nose-wing line), blotches
+  // and light/dark seams are pulled towards a skin-only blur, and the rest of the skin is evened a
+  // little. Features (lashes, brows, irises, sclera, hair, lips) are excluded by colour and dilated.
+  if (v.skin.length) {
+    const isSkin = (r, g, b) => r > b && sat(r, g, b) > 0.08 && lum(r, g, b) > 150;
+    const isFeature = (r, g, b) => lum(r, g, b) < 80 || sat(r, g, b) < 0.07 || r <= b || r - g > 75;
+    const M = new Float32Array(R.length), MR = new Float32Array(R.length), F = new Float32Array(R.length);
+    for (let k = 0; k < SIZE * SIZE; k++) {
+      const i = k * 3, s = isSkin(R[i], R[i + 1], R[i + 2]) ? 1 : 0, f = isFeature(R[i], R[i + 1], R[i + 2]) ? 1 : 0;
+      for (let c = 0; c < 3; c++) { M[i + c] = s; MR[i + c] = R[i + c] * s; F[i + c] = f; }
+    }
+    // Small isolated dark marks (specks, crease fragments) are blemishes, not features.
+    const seen = new Uint8Array(SIZE * SIZE);
+    for (let k0 = 0; k0 < SIZE * SIZE; k0++) {
+      if (seen[k0] || !F[k0 * 3]) continue;
+      const comp = [k0]; seen[k0] = 1;
+      for (let q = 0; q < comp.length; q++) {
+        const k = comp[q], x = k % SIZE, y = (k / SIZE) | 0;
+        for (const [nx, ny] of [[x - 1, y], [x + 1, y], [x, y - 1], [x, y + 1]]) {
+          if (nx < 0 || ny < 0 || nx >= SIZE || ny >= SIZE) continue;
+          const kk = ny * SIZE + nx;
+          if (!seen[kk] && F[kk * 3]) { seen[kk] = 1; comp.push(kk); }
+        }
+      }
+      if (comp.length < 250) for (const k of comp) for (let c = 0; c < 3; c++) F[k * 3 + c] = 0;
+    }
+    // Second pass: skin darker than its first-pass neighbourhood (the creases themselves) is left out
+    // of the reference, so a wide crease does not pull the reference down with it.
+    const bm1 = blur(M, SIZE, SIZE, 14), bmr1 = blur(MR, SIZE, SIZE, 14);
+    for (let i = 0; i < M.length; i += 3) {
+      if (!M[i] || bm1[i] < 0.05) continue;
+      if (lum(R[i], R[i + 1], R[i + 2]) < lum(bmr1[i], bmr1[i + 1], bmr1[i + 2]) / bm1[i] - 6) for (let c = 0; c < 3; c++) { M[i + c] = 0; MR[i + c] = 0; }
+    }
+    const bm = blur(M, SIZE, SIZE, 20), bmr = blur(MR, SIZE, SIZE, 20), near = blur(F, SIZE, SIZE, 5);
+    for (const poly of v.skin) {
+      const b = polyBox(poly, 26);
+      for (let y = Math.max(0, b[1]); y <= Math.min(SIZE - 1, b[3]); y++) for (let x = Math.max(0, b[0]); x <= Math.min(SIZE - 1, b[2]); x++) {
+        const rw = polyW(x, y, poly, 25);
+        const i = px(x, y);
+        if (!rw || bm[i] < 0.25) continue;
+        const keep = smooth(0.0, 0.12, near[i]); // 1 next to a feature
+        const ref = [bmr[i] / bm[i], bmr[i + 1] / bm[i], bmr[i + 2] / bm[i]];
+        const d = Math.abs(lum(ref[0], ref[1], ref[2]) - lum(E[i], E[i + 1], E[i + 2]));
+        const k = rw * (1 - keep) * Math.max(0.4, smooth(3, 16, d));
+        if (k <= 0.001) continue;
+        for (let c = 0; c < 3; c++) E[i + c] = E[i + c] * (1 - k) + ref[c] * k;
+        mark(x, y, k);
+        S[y * SIZE + x] = Math.max(S[y * SIZE + x], rw * (1 - keep));
+      }
+    }
+  }
 
   // 1. Lid lowering: vertical displacement, strongest at the upper lid, zero at ROI top and anchor.
   for (const L of v.lids) {
@@ -241,22 +326,90 @@ function editImage(R, v) {
       }
     }
   }
-  // 6. Shade: skin inside soft shapes is darkened (multiplied, slightly warmer) - painted form shadows.
-  for (const s of v.shade) {
-    const b = s.kind === 'ellipse'
-      ? [Math.floor(s.cx - s.rx - 2), Math.floor(s.cy - s.ry - 2), Math.ceil(s.cx + s.rx + 2), Math.ceil(s.cy + s.ry + 2)]
-      : polyBox(s.poly, s.f + 2);
-    for (let y = Math.max(0, b[1]); y <= Math.min(SIZE - 1, b[3]); y++) for (let x = Math.max(0, b[0]); x <= Math.min(SIZE - 1, b[2]); x++) {
-      const w = s.kind === 'ellipse' ? ellipseW(x, y, s) : polyW(x, y, s.poly, s.f);
-      if (w <= 0.001) continue;
+  // 6. Eye repaint (eye views only). Bottom to top: lid crease, sclera shaded under the lid, iris
+  // (pupil, brown, limbal ring), catch-lights, lower lash line, upper lash line with an outer flick.
+  for (const e of v.eyes ?? []) {
+    const poly = (pts, x) => {
+      if (x <= pts[0][0]) return pts[0][1];
+      for (let j = 1; j < pts.length; j++) if (x <= pts[j][0]) { const [ax, ay] = pts[j - 1], [bx, by] = pts[j]; return ay + ((by - ay) * (x - ax)) / (bx - ax); }
+      return pts.at(-1)[1];
+    };
+    const curve = (pts, x) => { let s = 0; for (let d = -16; d <= 16; d += 4) s += poly(pts, x + d); return s / 9; }; // rounds the kinks
+    const x0 = e.upper[0][0], x1 = e.upper.at(-1)[0], FLICK = 45;
+    const { cx, cy, rx, ry } = e.iris;
+    const ys = [...e.upper, ...e.lower].map((p) => p[1]);
+    const by0 = Math.max(0, Math.min(...ys) - e.crease - 40), by1 = Math.min(SIZE - 1, Math.max(...ys) + 20);
+    const lerp = (a, b, k) => a.map((av, c) => av + (b[c] - av) * k);
+    const catches = [{ x: cx + rx * 0.3, y: cy - ry * 0.3, r: 20, k: 0.95 }, { x: cx - rx * 0.32, y: cy + ry * 0.38, r: 8, k: 0.45 }];
+    for (const c of catches) c.y = Math.max(c.y, curve(e.upper, c.x) + c.r + 8);
+    // Local skin tone (mean of the skin pixels around the eye) for clearing the old lash line.
+    const skinMean = [0, 0, 0]; let ns = 0;
+    for (let y = by0; y <= by1; y++) for (let x = Math.max(0, x0 - 60); x <= Math.min(SIZE - 1, x1 + 60); x++) {
       const i = px(x, y);
-      if (!(sat(E[i], E[i + 1], E[i + 2]) > 0.1 && lum(E[i], E[i + 1], E[i + 2]) > 120 && E[i] > E[i + 2])) continue;
-      const mul = 1 - (1 - s.k) * w;
-      E[i] *= mul; E[i + 1] *= mul * 0.985; E[i + 2] *= mul * 0.96; // warmer in the shadow
-      mark(x, y, Math.min(1, w * 1.2));
+      if (E[i] > E[i + 2] && lum(E[i], E[i + 1], E[i + 2]) > 150 && sat(E[i], E[i + 1], E[i + 2]) > 0.1) { ns++; for (let c = 0; c < 3; c++) skinMean[c] += E[i + c]; }
+    }
+    for (let c = 0; c < 3; c++) skinMean[c] /= ns || 1;
+    for (let x = Math.max(0, x0 - FLICK - 10); x <= Math.min(SIZE - 1, x1 + FLICK + 10); x++) {
+      const inside = x >= x0 && x <= x1;
+      const t = Math.min(1, Math.max(0, (x - x0) / (x1 - x0)));
+      const tt = e.outer === 'left' ? t : 1 - t; // 0 at the outer corner, 1 at the inner corner
+      const beyond = e.outer === 'left' ? x0 - x : x - x1; // > 0 in the flick
+      const uy = curve(e.upper, x), ly = curve(e.lower, x);
+      const arch = Math.pow(Math.sin(Math.PI * t), 0.8);
+      for (let y = by0; y <= by1; y++) {
+        const i = px(x, y);
+        let col = [E[i], E[i + 1], E[i + 2]], w = 0;
+        if (x >= x0 - FLICK && x <= x1 + FLICK && ns) {
+          const above = y < uy - 2 && y > uy - e.lash - 70, below = y > ly + 3 && y < ly + 45;
+          const cw = (above || below) ? 1 - smooth(110, 160, lum(col[0], col[1], col[2])) : 0;
+          if (cw > 0) { col = lerp(col, skinMean, cw); w = Math.max(w, cw); }
+        }
+        if (inside) {
+          // Lid crease: a soft warm line following the lid.
+          const cyy = uy - e.crease * (0.55 + 0.45 * arch);
+          const cw = (1 - smooth(0, 9, Math.abs(y - cyy))) * arch * 0.5;
+          if (cw > 0) { col = lerp(col, [col[0] * 0.8, col[1] * 0.73, col[2] * 0.7], cw); w = Math.max(w, cw); }
+          // Opening.
+          const open = smooth(-1.5, 1.5, y - uy) * smooth(-1.5, 1.5, ly - y);
+          if (open > 0) {
+            const lid = smooth(0, 55, y - uy);
+            const corner = 0.8 + 0.2 * smooth(0, 0.15, Math.min(t, 1 - t));
+            let eye = [224, 216, 208].map((c) => c * (0.55 + 0.45 * lid) * corner);
+            eye = lerp(eye, [214, 188, 178], (1 - smooth(0, 14, ly - y)) * 0.55); // waterline
+            const d = Math.hypot((x - cx) / rx, (y - cy) / ry);
+            if (d < 1.03) {
+              let iris = d < 0.4 ? [8, 6, 5] : lerp([66, 42, 28], [24, 15, 11], Math.pow((d - 0.4) / 0.6, 1.2));
+              iris = lerp(iris, [8, 6, 5], 1 - smooth(0.36, 0.46, d)); // soft pupil edge
+              if (d >= 0.4) iris = iris.map((c) => c * (1 + 0.18 * smooth(cy, cy + ry, y)));
+              iris = lerp(iris, [16, 11, 8], smooth(0.8, 1.0, d)); // limbal ring
+              iris = iris.map((c) => c * (0.7 + 0.3 * lid));
+              eye = lerp(eye, iris, 1 - smooth(0.97, 1.03, d));
+            }
+            for (const c of catches) eye = lerp(eye, [255, 253, 248], (1 - smooth(0.55, 1, Math.hypot(x - c.x, y - c.y) / c.r)) * c.k);
+            col = lerp(col, eye, open);
+            w = Math.max(w, open);
+          }
+          // Lower lash line, heavier towards the outer corner.
+          const lw = (1 - smooth(2, 10, Math.abs(y - ly - 3))) * 0.45 * (1 - smooth(0.55, 0.95, tt));
+          if (lw > 0) { col = lerp(col, [70, 48, 40], lw); w = Math.max(w, lw); }
+        }
+        // Upper lash line: thick over the iris, thin at the inner corner, flicking out past the outer.
+        let lashY = uy, th = 0;
+        if (inside) th = e.lash * (0.5 + 0.5 * smooth(0, 0.3, tt)) * (1 - 0.75 * smooth(0.7, 1, tt));
+        else if (beyond > 0 && beyond <= FLICK) {
+          const f = beyond / FLICK;
+          lashY = curve(e.upper, e.outer === 'left' ? x0 : x1) - 12 * f;
+          th = e.lash * 0.5 * (1 - f);
+        }
+        if (th > 1) {
+          const lw = smooth(lashY - th - 3, lashY - th + 3, y) * (1 - smooth(lashY + 1, lashY + 5, y));
+          if (lw > 0) { col = lerp(col, [16, 11, 9], lw); w = Math.max(w, lw); }
+        }
+        if (w > 0) { E[i] = col[0]; E[i + 1] = col[1]; E[i + 2] = col[2]; mark(x, y, Math.min(1, w * 1.5)); S[y * SIZE + x] = 1; }
+      }
     }
   }
-  return { E, W };
+  return { E, W, S };
 }
 
 /* ------------------------------------------------------------------- run */
@@ -264,8 +417,8 @@ const results = [];
 for (const v of VIEWS) {
   const rot = rotator(v.yaw, 0);
   const R = rasterise(m, rot, v.view);
-  const { E, W } = editImage(Float32Array.from(R.img), v);
-  results.push({ v, R, E, W });
+  const { E, W, S } = editImage(Float32Array.from(R.img), v);
+  results.push({ v, R, E, W, S });
   if (mode === 'preview') {
     const toBuf = (a) => Buffer.from(Uint8ClampedArray.from(a));
     const crop = { left: 120, top: 250, width: 800, height: 420 };
@@ -283,7 +436,8 @@ if (mode === 'bake') {
   const { tex, texW, texH, uv, idx } = m;
   const outTex = Float32Array.from(tex);
   const touched = new Uint8Array(texW * texH);
-  for (const { R, E, W } of results) {
+  const mask = new Uint8Array(texW * texH);
+  for (const { R, E, W, S } of results) {
     const { P, depth, triId } = R;
     const visible = new Set();
     for (let k = 0; k < triId.length; k++) if (triId[k] >= 0 && W[k] > 0) visible.add(triId[k]);
@@ -315,6 +469,7 @@ if (mode === 'bake') {
         const ti = (ty * texW + tx) * 3;
         for (let ch = 0; ch < 3; ch++) outTex[ti + ch] = outTex[ti + ch] * (1 - wt) + E[k * 3 + ch] * wt;
         touched[ty * texW + tx] = 1;
+        mask[ty * texW + tx] = Math.max(mask[ty * texW + tx], Math.round(S[k] * 255));
       }
     }
   }
@@ -322,5 +477,6 @@ if (mode === 'bake') {
   console.log('texels edited', n);
   const jpeg = await sharp(Buffer.from(Uint8ClampedArray.from(outTex)), { raw: { width: texW, height: texH, channels: 3 } }).jpeg({ quality: 95, chromaSubsampling: '4:4:4' }).toBuffer();
   writeFileSync(`${out}/basecolor-edited.jpg`, jpeg);
+  await sharp(Buffer.from(mask), { raw: { width: texW, height: texH, channels: 1 } }).png().toFile(`${out}/face-mask.png`);
   console.log('wrote basecolor-edited.jpg');
 }

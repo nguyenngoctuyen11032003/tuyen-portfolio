@@ -58,7 +58,8 @@ section.about[id] {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  font-size: 16px;
+  font-size: var(--text-base);
+  line-height: var(--leading-snug);
 }
 .about-list-item {
   display: flex;
@@ -72,8 +73,8 @@ section.about[id] {
 }
 .about-list-item.active {
   gap: 8px;
-  font-size: 18px;
-  font-weight: 600;
+  font-size: var(--text-lg);
+  font-weight: var(--weight-semibold);
   color: #f4f1ea;
 }
 .about-list-item.active::before {
@@ -93,10 +94,12 @@ section.about[id] {
 }
 .about-eyebrow {
   margin-bottom: 14px;
-  font-size: 12px;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
   color: rgba(255, 255, 255, 0.45);
+}
+/* The intro column is ~430px wide: a step below the section h2 keeps the heading to three lines. */
+.about-intro .about-heading {
+  margin-bottom: 20px;
+  font-size: var(--text-3xl);
 }
 
 /* Portal */
@@ -111,13 +114,14 @@ section.about[id] {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 12px;
-  font-size: 15px;
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
   color: rgba(244, 241, 234, 0.75);
 }
 .about-portal-heading strong {
   margin-left: 6px;
-  font-size: 17px;
-  font-weight: 600;
+  font-size: var(--text-base);
+  font-weight: var(--weight-semibold);
   color: #f4f1ea;
 }
 .about-portal {
@@ -162,22 +166,26 @@ section.about[id] {
 }
 .about-title {
   margin: 0 0 -0.04em;
-  font-family: Oswald, 'Arial Narrow', sans-serif;
-  font-weight: 500;
+  /* Graphic wordmark sized to the viewport, beyond the type scale; the 0.78 leading crops it onto
+     the facts' baseline. */
+  font-family: var(--font-wordmark);
+  font-weight: var(--weight-medium);
   font-size: clamp(110px, 15.5vw, 236px);
   line-height: 0.78;
-  letter-spacing: -0.01em;
+  letter-spacing: var(--tracking-heading);
   color: #f4f1ea;
   white-space: nowrap;
 }
 .about-facts {
   width: min(440px, 34vw);
   margin: 0;
-  font-size: 15px;
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
 }
 .about-fact {
   display: grid;
   grid-template-columns: 120px 1fr;
+  align-items: baseline;
   gap: 18px;
   padding: 8px 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.4);
@@ -186,12 +194,15 @@ section.about[id] {
   border-bottom: 0;
 }
 .about-fact dt {
-  font-weight: 600;
-  color: #f4f1ea;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: rgba(244, 241, 234, 0.6);
 }
 .about-fact dd {
   margin: 0;
-  color: rgba(255, 255, 255, 0.72);
+  color: rgba(255, 255, 255, 0.78);
 }
 
 /* Pointer label over the portal */
@@ -205,8 +216,11 @@ section.about[id] {
   border-radius: 999px;
   background: rgba(244, 241, 234, 0.92);
   color: #000;
-  font-size: 13px;
-  font-weight: 500;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  line-height: var(--leading-normal);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
   white-space: nowrap;
   pointer-events: none;
   opacity: 0;
@@ -309,15 +323,9 @@ section.about[id] {
   .about-portal {
     border-radius: 70px;
   }
-  .about-portal-heading {
-    font-size: 14px;
-  }
   .about-title {
     margin-bottom: 20px;
     font-size: clamp(84px, 27vw, 150px);
-  }
-  .about-facts {
-    font-size: 13px;
   }
   .about-fact {
     grid-template-columns: 92px 1fr;

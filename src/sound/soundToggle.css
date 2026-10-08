@@ -33,9 +33,11 @@
   padding: 0 14px;
   justify-content: flex-start;
   text-align: left;
-  font-size: 13px;
-  font-weight: 500;
-  letter-spacing: 0.02em;
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  line-height: var(--leading-normal);
+  letter-spacing: var(--tracking-body);
 }
 .sound-toggle-text {
   white-space: nowrap;

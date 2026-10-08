@@ -11,7 +11,7 @@ export function LangToggle() {
         sfx.play('lang', { rate: lang === 'vi' ? 1.06 : 0.94 });
         toggleLang();
       }}
-      className="liquid-glass rounded-full px-3 py-1.5 text-xs font-medium text-white/80 hover:text-white transition-colors"
+      className="liquid-glass rounded-full px-3 py-1.5 font-body text-[length:var(--text-xs)] font-medium leading-[var(--leading-normal)] tracking-[var(--tracking-caps)] text-white/80 hover:text-white transition-colors"
       aria-label={t.a11y.toggleLanguage}
     >
       {lang === 'vi' ? 'VI / EN' : 'EN / VI'}

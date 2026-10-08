@@ -213,22 +213,22 @@ export function ExperienceSection() {
           transition={{ duration: 1, ease: EASE }}
           onViewportEnter={() => sfx.play('reveal', { intensity: 0.5, source: 'auto' })}
         >
-          <p className="flex items-center gap-3 text-white/45 text-xs uppercase tracking-[0.3em] mb-6">
+          <p className="type-label flex items-center gap-3 text-white/45 mb-6">
             <span className="block w-8 h-px bg-white/25" aria-hidden="true" />
             {t.experience.eyebrow}
           </p>
-          <h2 id="experience-heading" className="text-5xl md:text-7xl text-ink tracking-tight leading-[0.95]">
+          <h2 id="experience-heading" className="type-h2 text-ink">
             {before}{' '}
-            {accent && <em className="block font-serif italic font-normal text-primary">{accent}</em>}
+            {accent && <em className="type-accent block text-primary">{accent}</em>}
           </h2>
-          <p className="mt-6 text-white/55 text-sm md:text-base leading-relaxed max-w-sm">{t.experience.intro}</p>
+          <p className="type-body mt-6 text-white/60 max-w-sm">{t.experience.intro}</p>
 
           <div className="exp-span" aria-hidden="true">
             <span className="exp-span-from">{from}</span>
             <span className="exp-span-dash" />
             <span className="exp-span-to">{to}</span>
           </div>
-          <p className="exp-mono text-white/40">
+          <p className="exp-mono text-white/45">
             {pad(items.length)} {t.experience.companiesLabel}
           </p>
 

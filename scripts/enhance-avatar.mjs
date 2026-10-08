@@ -1,10 +1,12 @@
 // Enhances the raw avatar scan before it is compressed for the web.
-//   node scripts/enhance-avatar.mjs <in.glb> <out.glb> [--base <basecolor.jpg>]
+//   node scripts/enhance-avatar.mjs <in.glb> <out.glb> [--base <basecolor.jpg>] [--smooth-normals <mask.png>]
 // --base swaps in a hand-edited base colour (same 2048² atlas layout) before grading, e.g. the face
 // retouch (darker irises, softer brows, monolid upper lid) baked from a render.
 // 1. Base colour: skin is warmed and slightly deepened (the scan's skin is a pale pink that reads
 //    chalk-white under the hero's lights), then the whole texture gets a mild unsharp mask.
-// 2. Normal / roughness textures are kept bit-for-bit.
+// 2. --smooth-normals blurs the normal map where the (atlas-sized, greyscale) mask is white: the scan
+//    carries frown lines and creases in its normals too, and they still read under the hero lights
+//    once the base colour is clean. Elsewhere normal / roughness textures are kept bit-for-bit.
 // The output is a plain GLB. Compress it for the web WITHOUT simplifying (simplify blurs the face):
 //   npx @gltf-transform/cli@4.5.1 optimize <out.glb> public/models/tuyen-avatar.glb \
 //     --compress meshopt --texture-compress webp --texture-size 2048 --simplify false
@@ -12,7 +14,9 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import sharp from 'sharp';
 
 const [input, output, ...rest] = process.argv.slice(2);
-const baseArg = rest[0] === '--base' ? rest[1] : null;
+const opt = (name) => { const i = rest.indexOf(name); return i >= 0 ? rest[i + 1] : null; };
+const baseArg = opt('--base');
+const normalMaskArg = opt('--smooth-normals');
 if (!input || !output) {
   console.error('Usage: node scripts/enhance-avatar.mjs <in.glb> <out.glb>');
   process.exit(1);
@@ -80,7 +84,7 @@ function skinWeight(r, g, b) {
   return warm * light * chroma;
 }
 
-async function gradeBaseColor(jpeg) {
+async function gradeBaseColor(jpeg, faceMask) {
   const { data, info } = await sharp(jpeg).removeAlpha().raw().toBuffer({ resolveWithObject: true });
   const out = Buffer.from(data);
   for (let i = 0; i < data.length; i += 3) {
@@ -100,10 +104,27 @@ async function gradeBaseColor(jpeg) {
   const strong = await sharp(out, rawOpts).sharpen({ sigma: 1.4, m1: 0.9, m2: 2.4 }).raw().toBuffer();
   const mixed = Buffer.alloc(out.length);
   for (let i = 0; i < out.length; i += 3) {
+    // Inside the face mask (retouched skin, repainted eyes) nothing: they are drawn crisp already and
+    // any unsharp mask rings white around the lash lines.
+    if (faceMask?.[i / 3]) { for (let c = 0; c < 3; c++) mixed[i + c] = out[i + c]; continue; }
     const w = skinWeight(out[i], out[i + 1], out[i + 2]);
     for (let c = 0; c < 3; c++) mixed[i + c] = Math.round(mild[i + c] * w + strong[i + c] * (1 - w));
   }
   return sharp(mixed, rawOpts).jpeg({ quality: 95, chromaSubsampling: '4:4:4' }).toBuffer();
+}
+
+/** Blends the normal map towards a blurred copy of itself by the mask (feathered). */
+async function smoothNormals(image, maskPath) {
+  const { data, info } = await sharp(image).removeAlpha().raw().toBuffer({ resolveWithObject: true });
+  const rawOpts = { raw: { width: info.width, height: info.height, channels: 3 } };
+  const soft = await sharp(data, rawOpts).blur(5).raw().toBuffer();
+  const mask = await sharp(maskPath).resize(info.width, info.height).greyscale().blur(3).raw().toBuffer();
+  const out = Buffer.alloc(data.length);
+  for (let p = 0; p < mask.length; p++) {
+    const w = Math.min(1, (mask[p] / 255) * 1.2);
+    for (let c = 0; c < 3; c++) out[p * 3 + c] = Math.round(data[p * 3 + c] * (1 - w) + soft[p * 3 + c] * w);
+  }
+  return sharp(out, rawOpts).png().toBuffer();
 }
 
 /* -------------------------------------------------------------------- run */
@@ -115,7 +136,17 @@ const baseImg = json.images[baseTex.source];
 const bv = json.bufferViews[baseImg.bufferView];
 const jpeg = baseArg ? readFileSync(baseArg) : bin.subarray(bv.byteOffset ?? 0, (bv.byteOffset ?? 0) + bv.byteLength);
 
-const graded = await gradeBaseColor(jpeg);
+const faceMask = normalMaskArg ? await sharp(normalMaskArg).greyscale().raw().toBuffer() : null;
+const graded = await gradeBaseColor(jpeg, faceMask);
 baseImg.mimeType = 'image/jpeg';
-writeGlb(output, json, bin, new Map([[baseImg.bufferView, graded]]));
+const replaced = new Map([[baseImg.bufferView, graded]]);
+if (normalMaskArg) {
+  const nImg = json.images[json.textures[mat.normalTexture.index].source];
+  const nbv = json.bufferViews[nImg.bufferView];
+  const smoothed = await smoothNormals(bin.subarray(nbv.byteOffset ?? 0, (nbv.byteOffset ?? 0) + nbv.byteLength), normalMaskArg);
+  nImg.mimeType = 'image/png';
+  replaced.set(nImg.bufferView, smoothed);
+  console.log('normal map smoothed under', normalMaskArg);
+}
+writeGlb(output, json, bin, replaced);
 console.log(`wrote ${output}: base colour graded + sharpened (${(graded.length / 1024) | 0} KB)`);
