@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import type { ProjectImage } from '../../data/content';
 import { mediumOf, thumbOf } from '../../data/thumbs';
+import { sfx } from '../../sound';
 
 interface ProjectGalleryProps {
   images: ProjectImage[];
@@ -16,16 +17,30 @@ export function ProjectGallery({ images, labels, initialIndex = 0 }: ProjectGall
   const [index, setIndex] = useState(() => Math.min(Math.max(initialIndex, 0), images.length - 1));
   const count = images.length;
   const current = images[index];
+  const lastStep = useRef(0);
+
+  /** Step one image; a held arrow key sounds at most every 120 ms. */
+  const go = useCallback(
+    (delta: 1 | -1, repeat = false) => {
+      setIndex((i) => (i + delta + count) % count);
+      const now = performance.now();
+      if (!repeat || now - lastStep.current > 120) {
+        lastStep.current = now;
+        sfx.play('slide', { intensity: 0.45, pan: delta * 0.3, rate: delta > 0 ? 1.05 : 0.95 });
+      }
+    },
+    [count]
+  );
 
   useEffect(() => {
     if (count < 2) return;
     function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === 'ArrowLeft') setIndex((i) => (i - 1 + count) % count);
-      if (e.key === 'ArrowRight') setIndex((i) => (i + 1) % count);
+      if (e.key === 'ArrowLeft') go(-1, e.repeat);
+      if (e.key === 'ArrowRight') go(1, e.repeat);
     }
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [count]);
+  }, [count, go]);
 
   if (count === 0) return null;
 
@@ -49,7 +64,8 @@ export function ProjectGallery({ images, labels, initialIndex = 0 }: ProjectGall
           <>
             <button
               type="button"
-              onClick={() => setIndex((index - 1 + count) % count)}
+              data-sfx="off"
+              onClick={() => go(-1)}
               className="absolute left-3 bg-black/60 backdrop-blur-sm border border-white/15 top-1/2 -translate-y-1/2 rounded-full p-2 hover:scale-110 transition-transform"
               aria-label={labels.prev}
             >
@@ -57,7 +73,8 @@ export function ProjectGallery({ images, labels, initialIndex = 0 }: ProjectGall
             </button>
             <button
               type="button"
-              onClick={() => setIndex((index + 1) % count)}
+              data-sfx="off"
+              onClick={() => go(1)}
               className="absolute right-3 top-1/2 bg-black/60 backdrop-blur-sm border border-white/15 -translate-y-1/2 rounded-full p-2 hover:scale-110 transition-transform"
               aria-label={labels.next}
             >
@@ -80,7 +97,12 @@ export function ProjectGallery({ images, labels, initialIndex = 0 }: ProjectGall
             <li key={image.src} className="flex-shrink-0">
               <button
                 type="button"
-                onClick={() => setIndex(i)}
+                data-sfx="off"
+                onClick={() => {
+                  if (i === index) return;
+                  sfx.play('tick', { step: i, intensity: 0.5, pan: count > 1 ? (i / (count - 1)) * 0.6 - 0.3 : 0 });
+                  setIndex(i);
+                }}
                 aria-label={`${labels.show} ${i + 1}: ${image.alt}`}
                 aria-current={i === index}
                 className={`block w-24 md:w-28 aspect-video rounded-lg overflow-hidden border transition-all ${

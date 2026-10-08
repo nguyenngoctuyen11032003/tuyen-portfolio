@@ -2,6 +2,7 @@ import { Fragment, useEffect, useMemo, useRef, useState, type CSSProperties } fr
 import { ArrowDown } from 'lucide-react';
 import { useLang } from '../../context/LangContext';
 import { ProjectDetailModal } from '../ProjectDetailModal';
+import { sfx } from '../../sound';
 import { collectShots, depthDim, fibonacciSphere, rotatePoint, sphereMetrics, titleOverlap } from './sphere';
 
 const DRAG_DEG_PER_PX = 0.13;
@@ -37,6 +38,7 @@ export function ArchiveSphere() {
   const headlineRef = useRef<HTMLHeadingElement>(null);
   const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
   const openRef = useRef(false);
+  const revealedRef = useRef(false); // the reveal swell plays once per mount
 
   const [armed, setArmed] = useState(false); // images load once the section is near
   const [revealed, setRevealed] = useState(false);
@@ -119,6 +121,15 @@ export function ArchiveSphere() {
       }
       dragY = Math.max(-PITCH_LIMIT - REST_TILT, Math.min(PITCH_LIMIT - REST_TILT, dragY));
 
+      // Texture of the turn: drag/inertia speed only (idle spin stays silent). The engine
+      // throttles by intensity, so calling this every frame is fine.
+      if (visible && !openRef.current && sfx.ready()) {
+        const speed = Math.hypot(velX, velY);
+        if (speed > 0.25) {
+          sfx.play('grain', { intensity: Math.min(1, speed / 6), pan: Math.max(-0.5, Math.min(0.5, velX / 6)) });
+        }
+      }
+
       const p = reduced ? 0 : scrollProgress();
       const camTarget = p * Math.min(90, R * 0.18);
       camZ += (camTarget - camZ) * 0.075;
@@ -168,7 +179,13 @@ export function ArchiveSphere() {
       ([entry]) => {
         if (entry.isIntersecting) {
           setArmed(true);
-          if (entry.intersectionRatio > 0.25) setRevealed(true);
+          if (entry.intersectionRatio > 0.25) {
+            setRevealed(true);
+            if (!revealedRef.current) {
+              revealedRef.current = true;
+              sfx.play('swell', { intensity: 0.45, delay: 700, source: 'auto' });
+            }
+          }
         }
       },
       { rootMargin: '600px 0px', threshold: [0, 0.25] }
@@ -196,6 +213,7 @@ export function ArchiveSphere() {
     let lastY = 0;
     let moved = 0;
     let pending = false;
+    let dragAnnounced = false; // the first real drag move sounds once per gesture
     let downCard: HTMLElement | null = null;
 
     function onPointerDown(e: PointerEvent) {
@@ -234,6 +252,10 @@ export function ArchiveSphere() {
         stage!.setPointerCapture(e.pointerId);
       }
       if (!dragging) return;
+      if (!dragAnnounced && moved >= clickSlop) {
+        dragAnnounced = true;
+        sfx.play('tap', { rate: 0.7, intensity: 0.4 });
+      }
       lastX = e.clientX;
       lastY = e.clientY;
       velX = dx * DRAG_DEG_PER_PX;
@@ -247,13 +269,24 @@ export function ArchiveSphere() {
       const wasClick = moved < clickSlop;
       dragging = false;
       pending = false;
+      dragAnnounced = false;
       pointerId = -1;
       if (wasClick) {
         velX = velY = 0;
         if (downCard) {
+          const projectIndex = Number(downCard.dataset.project);
+          sfx.play('chime', { step: projectIndex, intensity: 0.4, pan: sfx.panAt(e.clientX) });
           setSelection({
-            projectIndex: Number(downCard.dataset.project),
+            projectIndex,
             imageIndex: Number(downCard.dataset.image),
+          });
+        }
+      } else {
+        const sp = Math.hypot(velX, velY);
+        if (sp > 0.3) {
+          sfx.play('whoosh', {
+            intensity: Math.min(0.6, Math.max(0.2, sp / 8)),
+            pan: Math.max(-0.5, Math.min(0.5, velX / 6)),
           });
         }
       }
@@ -264,6 +297,7 @@ export function ArchiveSphere() {
       if (e.pointerId !== pointerId) return;
       dragging = false;
       pending = false;
+      dragAnnounced = false;
       pointerId = -1;
       downCard = null;
     }
@@ -307,7 +341,7 @@ export function ArchiveSphere() {
       className={`archive relative bg-black ${revealed ? 'is-revealed' : ''}`}
     >
       <div className="archive-pin">
-        <div ref={stageRef} className="archive-stage">
+        <div ref={stageRef} className="archive-stage" data-sfx-hover="off">
           <div ref={worldRef} className="archive-world">
             <div className="archive-orb" aria-hidden="true">
               {shots.map((shot, i) => (

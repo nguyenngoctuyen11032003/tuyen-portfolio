@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties, type KeyboardEvent } from 'react';
 import { useLang } from '../../context/LangContext';
+import { sfx } from '../../sound';
 import eagleImg from '../../assets/artifacts/dau-dai-bang.webp';
 import boatImg from '../../assets/artifacts/thuyen-buom.webp';
 import { Icon, IconSprite } from './icons';
@@ -56,6 +57,9 @@ export function ArtifactAtlas() {
   const activeRef = useRef(DEFAULT_INDEX);
   const lightRef = useRef<LightMode>('night');
   const swapTimer = useRef(0);
+  const onScreenRef = useRef(false);
+  const lastSwitch = useRef(0);
+  const lastTurn = useRef(0);
 
   const [active, setActive] = useState(DEFAULT_INDEX);
   const [shown, setShown] = useState(DEFAULT_INDEX);
@@ -76,8 +80,7 @@ export function ArtifactAtlas() {
 
     let cancelled = false;
     let booting = false;
-    let onScreen = false;
-    const sync = () => engineRef.current?.setRunning(onScreen && !document.hidden);
+    const sync = () => engineRef.current?.setRunning(onScreenRef.current && !document.hidden);
 
     function boot() {
       if (booting) return;
@@ -93,8 +96,13 @@ export function ArtifactAtlas() {
             initial: activeRef.current,
             reducedMotion: prefersReducedMotion(),
             light: lightRef.current,
-            onLoadState: (index, state) =>
-              setLoadStates((prev) => prev.map((s, i) => (i === index ? state : s))),
+            onLoadState: (index, state) => {
+              setLoadStates((prev) => prev.map((s, i) => (i === index ? state : s)));
+              // The artifact on view finished loading; background loads and errors stay silent.
+              if (state === 'ready' && index === activeRef.current && onScreenRef.current) {
+                sfx.play('chime', { rate: 0.84, intensity: 0.6, source: 'auto' });
+              }
+            },
             onZoom: setZoom,
             onInteract: () => setHintGone(true),
           });
@@ -107,7 +115,7 @@ export function ArtifactAtlas() {
 
     const near = new IntersectionObserver(([entry]) => entry.isIntersecting && boot(), { rootMargin: '120% 0px' });
     const visible = new IntersectionObserver(([entry]) => {
-      onScreen = entry.isIntersecting;
+      onScreenRef.current = entry.isIntersecting;
       sync();
     });
     near.observe(hero);
@@ -138,8 +146,31 @@ export function ArtifactAtlas() {
     return () => document.removeEventListener('keydown', onKey);
   }, [focus]);
 
+  // Sounds for focus mode (button or Escape) and the light switch; the first render is silent.
+  const prevFocus = useRef(focus);
+  useEffect(() => {
+    if (prevFocus.current === focus) return;
+    prevFocus.current = focus;
+    sfx.play('whoosh', focus ? { intensity: 0.7, rate: 0.85 } : { intensity: 0.35, rate: 1.15 });
+  }, [focus]);
+
+  const prevLight = useRef(light);
+  useEffect(() => {
+    if (prevLight.current === light) return;
+    prevLight.current = light;
+    if (light === 'day') sfx.play('toggleOn', { rate: 1.12 });
+    else sfx.play('toggleOff', { rate: 0.84 });
+  }, [light]);
+
   const select = useCallback((index: number) => {
     if (index === activeRef.current || index < 0 || index >= MODELS.length) return;
+    const now = performance.now();
+    if (now - lastSwitch.current > 250) {
+      lastSwitch.current = now;
+      const dir = Math.sign(index - activeRef.current);
+      sfx.play('slide', { intensity: 0.8, pan: dir * 0.35, rate: dir > 0 ? 1.05 : 0.95 });
+      sfx.play('chime', { step: index + 3, intensity: 0.4, delay: 480 });
+    }
     activeRef.current = index;
     setActive(index);
     setZoom(1);
@@ -157,6 +188,29 @@ export function ArtifactAtlas() {
   }, []);
 
   const step = (delta: number) => select((activeRef.current + delta + MODELS.length) % MODELS.length);
+
+  function zoomStep(zoomIn: boolean) {
+    const engine = engineRef.current;
+    if (!engine) return;
+    const before = engine.getZoomTarget();
+    engine.zoomBy(zoomIn ? 1.35 : 1 / 1.35, { silent: true });
+    if (engine.getZoomTarget() !== before) sfx.play('slide', { intensity: 0.35, rate: zoomIn ? 1.2 : 0.8 });
+    else sfx.play('bump', { intensity: 0.6 });
+  }
+
+  function turn(radians: number) {
+    const now = performance.now();
+    if (now - lastTurn.current > 150) {
+      lastTurn.current = now;
+      if (Math.abs(radians) >= Math.PI * 2) {
+        sfx.play('whoosh', { intensity: 0.6 });
+        sfx.play('chime', { intensity: 0.35, delay: 1100 });
+      } else {
+        sfx.play('slide', { intensity: 0.5, pan: Math.sign(radians) * 0.35 });
+      }
+    }
+    engineRef.current?.turn(radians);
+  }
 
   function onTabKey(e: KeyboardEvent<HTMLDivElement>) {
     if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
@@ -209,6 +263,7 @@ export function ArtifactAtlas() {
                 type="button"
                 className="atlas-nav-item"
                 aria-current={active === i ? 'true' : undefined}
+                data-sfx="off"
                 onClick={() => select(i)}
               >
                 <Icon name={key} />
@@ -262,6 +317,7 @@ export function ArtifactAtlas() {
               aria-controls="atlas-panel"
               tabIndex={active === i ? 0 : -1}
               className="atlas-tab"
+              data-sfx="off"
               onClick={() => select(i)}
             >
               <img src={MODELS[i].image} alt="" decoding="async" />
@@ -302,7 +358,8 @@ export function ArtifactAtlas() {
               className={`atlas-round${zoom >= 1 ? ' on' : ''}`}
               aria-label={a.zoomIn}
               aria-pressed={zoom >= 1}
-              onClick={() => engineRef.current?.zoomBy(1.35)}
+              data-sfx="off"
+              onClick={() => zoomStep(true)}
             >
               <Icon name="zoomIn" />
             </button>
@@ -311,7 +368,8 @@ export function ArtifactAtlas() {
               className={`atlas-round${zoom < 1 ? ' on' : ''}`}
               aria-label={a.zoomOut}
               aria-pressed={zoom < 1}
-              onClick={() => engineRef.current?.zoomBy(1 / 1.35)}
+              data-sfx="off"
+              onClick={() => zoomStep(false)}
             >
               <Icon name="zoomOut" />
             </button>
@@ -320,6 +378,7 @@ export function ArtifactAtlas() {
               className={`atlas-round${focus ? ' on' : ''}`}
               aria-label={a.expand}
               aria-pressed={focus}
+              data-sfx="off"
               onClick={() => setFocus((f) => !f)}
             >
               <Icon name="expand" />
@@ -329,6 +388,7 @@ export function ArtifactAtlas() {
               className={`atlas-round${light === 'day' ? ' on' : ''}`}
               aria-label={a.light}
               aria-pressed={light === 'day'}
+              data-sfx="off"
               onClick={() => setLight((l) => (l === 'day' ? 'night' : 'day'))}
             >
               <Icon name="sun" />
@@ -336,13 +396,19 @@ export function ArtifactAtlas() {
           </div>
 
           <div className="atlas-turn">
-            <button type="button" aria-label={a.turnLeft} onClick={() => engineRef.current?.turn(-Math.PI / 2)}>
+            <button type="button" aria-label={a.turnLeft} data-sfx="off" onClick={() => turn(-Math.PI / 2)}>
               <Icon name="rotateLeft" size={16} />
             </button>
-            <button type="button" className="atlas-turn-full" aria-label={a.turnFull} onClick={() => engineRef.current?.turn(Math.PI * 2)}>
+            <button
+              type="button"
+              className="atlas-turn-full"
+              aria-label={a.turnFull}
+              data-sfx="off"
+              onClick={() => turn(Math.PI * 2)}
+            >
               360°
             </button>
-            <button type="button" aria-label={a.turnRight} onClick={() => engineRef.current?.turn(Math.PI / 2)}>
+            <button type="button" aria-label={a.turnRight} data-sfx="off" onClick={() => turn(Math.PI / 2)}>
               <Icon name="rotateRight" size={16} />
             </button>
           </div>
@@ -362,10 +428,10 @@ export function ArtifactAtlas() {
             {pad2(active + 1)}
             <span aria-hidden="true"> / {pad2(MODELS.length)}</span>
           </span>
-          <button type="button" className="atlas-icon-btn" aria-label={a.prev} onClick={() => step(-1)}>
+          <button type="button" className="atlas-icon-btn" aria-label={a.prev} data-sfx="off" onClick={() => step(-1)}>
             <Icon name="chevronLeft" size={17} />
           </button>
-          <button type="button" className="atlas-icon-btn" aria-label={a.next} onClick={() => step(1)}>
+          <button type="button" className="atlas-icon-btn" aria-label={a.next} data-sfx="off" onClick={() => step(1)}>
             <Icon name="chevronRight" size={17} />
           </button>
         </div>
@@ -411,7 +477,14 @@ export function ArtifactAtlas() {
               className="atlas-closeup"
               style={rise()}
               aria-pressed={closeUp}
-              onClick={() => engineRef.current?.setZoom(closeUp ? 1 : CLOSE_UP_ZOOM)}
+              data-sfx="off"
+              onClick={() => {
+                const engine = engineRef.current;
+                if (!engine) return;
+                if (closeUp) sfx.play('slide', { rate: 0.85, intensity: 0.4 });
+                else sfx.play('reveal', { intensity: 0.6 });
+                engine.setZoom(closeUp ? 1 : CLOSE_UP_ZOOM, { silent: true });
+              }}
             >
               <span
                 className="atlas-lens"

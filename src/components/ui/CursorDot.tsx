@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { sfx } from '../../sound';
 
 const INTERACTIVE = 'a, button, [data-shot], [role="button"]';
 
@@ -24,6 +25,8 @@ export function CursorDot() {
     let tx = -100;
     let ty = -100;
     let raf = 0;
+    /** Interactive element under the pointer: `hover` sounds only when it changes. */
+    let lastHit: Element | null = null;
 
     const tick = () => {
       x += (tx - x) * 0.2;
@@ -36,10 +39,20 @@ export function CursorDot() {
       tx = e.clientX;
       ty = e.clientY;
       dot.classList.add('on');
-      dot.classList.toggle('wide', !!(e.target as Element).closest?.(INTERACTIVE));
+      const hit = (e.target as Element).closest?.(INTERACTIVE) ?? null;
+      dot.classList.toggle('wide', !!hit);
+      if (hit !== lastHit) {
+        lastHit = hit;
+        if (hit && e.buttons === 0 && !hit.closest('[data-sfx-hover="off"]')) {
+          sfx.play('hover', { pan: sfx.panAt(e.clientX) });
+        }
+      }
       if (!raf) raf = requestAnimationFrame(tick);
     };
-    const onLeave = () => dot.classList.remove('on');
+    const onLeave = () => {
+      lastHit = null;
+      dot.classList.remove('on');
+    };
 
     window.addEventListener('pointermove', onMove, { passive: true });
     document.documentElement.addEventListener('pointerleave', onLeave);

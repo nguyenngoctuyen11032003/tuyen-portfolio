@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLang } from '../context/LangContext';
 import { WordsPullUp } from './ui/WordsPullUp';
+import { sfx } from '../sound';
 import { animateValue, coverRect, project, roundedRectPoints } from './about/portal';
 import avatarUrl from '../assets/avatar.jpg';
 import './about/about.css';
@@ -195,6 +196,7 @@ export function AboutSection() {
         return;
       }
       kick();
+      if (ctx) sfx.play('swell', { intensity: 0.5, source: 'auto' });
       void animateValue((v) => {
         s.mask = v;
         kick();
@@ -216,17 +218,28 @@ export function AboutSection() {
       s.targetY = 0;
       kick();
     };
-    const onPortalEnter = () => section.classList.add('is-entering');
+    // A low, inviting hum when the mouse finds the portal (at most every 600 ms).
+    let lastHum = -Infinity;
+    const onPortalEnter = (ev: PointerEvent) => {
+      section.classList.add('is-entering');
+      if (!s.busy && ev.pointerType === 'mouse' && performance.now() - lastHum > 600) {
+        lastHum = performance.now();
+        sfx.play('tick', { step: -5, intensity: 0.4 });
+      }
+    };
     const onPortalLeave = () => section.classList.remove('is-entering');
 
     travelRef.current = () => {
       if (s.busy || !nextHref) return;
       const target = document.querySelector(nextHref);
       if (reduced || !ctx) {
+        sfx.suppressAuto(1500);
+        sfx.play('tap');
         target?.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' });
         return;
       }
       s.busy = true;
+      sfx.play('whoosh', { intensity: 1 });
       s.targetX = 0;
       s.targetY = 0;
       setTravelling(true);
@@ -235,6 +248,9 @@ export function AboutSection() {
         s.expansion = v;
         kick();
       }, 900).then(() => {
+        // Sections passed on the way down stay quiet.
+        sfx.suppressAuto(1500);
+        sfx.play('drop', { intensity: 0.8 });
         target?.scrollIntoView({ behavior: 'smooth' });
         window.setTimeout(() => {
           if (disposed) return;
@@ -299,6 +315,10 @@ export function AboutSection() {
             href={link.href}
             className={`about-list-item${i === index ? ' active' : ''}`}
             aria-current={i === index ? 'true' : undefined}
+            data-sfx-hover="off"
+            onPointerEnter={(e) => {
+              if (e.pointerType === 'mouse') sfx.play('tick', { step: i, intensity: 0.45 });
+            }}
           >
             {link.label}
           </a>
@@ -333,6 +353,8 @@ export function AboutSection() {
           type="button"
           className="about-portal"
           aria-label={next ? `${t.about.nextLabel} ${next.label}` : t.about.label}
+          data-sfx="off"
+          data-sfx-hover="off"
           onClick={() => travelRef.current()}
         >
           <img ref={imageRef} src={avatarUrl} alt="Nguyễn Ngọc Tuyền" />

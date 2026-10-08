@@ -10,6 +10,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
+import { sfx } from '../../sound';
 
 export type AvatarMode = 'scrub' | 'sway' | 'still';
 
@@ -37,6 +38,8 @@ export interface AvatarStage {
 const SENSITIVITY = 0.8;
 /** Hard stops of the turn, in radians either side of facing the camera. */
 const TURN_LIMIT = THREE.MathUtils.degToRad(70);
+/** Angle between the audible detents of the turn. */
+const NOTCH_DEG = 12;
 /** World-space height of the frame at the model (model is ~1.9 tall, feet at -0.95). */
 const VIEW_HEIGHT = 1.38;
 /** Top of the frame sits this far above the head. */
@@ -102,6 +105,10 @@ export function mountAvatar(o: AvatarOptions): AvatarStage {
   let current = 0;
   let prevX: number | null = null;
   const intro = { t: 0, start: 0, playing: false, wanted: false };
+  // The dial clicks every NOTCH_DEG and knocks at the hard stops. Seeded from the starting pose so
+  // the first mouse move is silent.
+  let lastNotch = Math.round(THREE.MathUtils.radToDeg(target) / NOTCH_DEG);
+  let wasAtLimit = false;
 
   const onMouseMove = (e: MouseEvent) => {
     if (prevX === null) {
@@ -111,9 +118,25 @@ export function mountAvatar(o: AvatarOptions): AvatarStage {
     const delta = prevX - e.clientX;
     prevX = e.clientX;
     if (!delta) return;
-    const next = target + (delta / window.innerWidth) * SENSITIVITY * TURN_LIMIT * 2;
-    target = Math.max(-TURN_LIMIT, Math.min(TURN_LIMIT, next));
+    const rawTarget = target + (delta / window.innerWidth) * SENSITIVITY * TURN_LIMIT * 2;
+    target = Math.max(-TURN_LIMIT, Math.min(TURN_LIMIT, rawTarget));
     requestRender();
+
+    // Only audible while the figure is revealed and on screen; state still tracks otherwise.
+    const audible = visible && readyFired;
+    const deg = THREE.MathUtils.radToDeg(target);
+    const notch = Math.round(deg / NOTCH_DEG);
+    if (notch !== lastNotch) {
+      lastNotch = notch;
+      if (audible) {
+        sfx.play('grain', { intensity: 0.25, pan: Math.max(-0.5, Math.min(0.5, deg / 140)), source: 'auto' });
+      }
+    }
+    const atLimit = Math.abs(rawTarget) >= TURN_LIMIT;
+    if (atLimit && !wasAtLimit && audible) {
+      sfx.play('bump', { intensity: 0.4, pan: Math.sign(rawTarget) * 0.5, source: 'auto' });
+    }
+    wasAtLimit = atLimit;
   };
   const reanchor = () => {
     prevX = null;

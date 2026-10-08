@@ -56,7 +56,7 @@ export function ImageTrail() {
     let next = 0;
     let z = 1;
     let raf = 0;
-    let gap = spawnGap(cards[0].offsetWidth || 130);
+    let gap = spawnGap(cards[0].offsetWidth || 65);
 
     const deal = (fromX: number, fromY: number, x: number, y: number, ux: number) => {
       for (let tries = 0; tries < cards.length; tries++) {
@@ -66,7 +66,7 @@ export function ImageTrail() {
         running.get(card)?.forEach((a) => a.cancel());
         card.style.zIndex = String(z++);
         const rot = tiltFor(ux, Math.random() * 2 - 1);
-        const drop = 80 + Math.random() * 30;
+        const drop = 40 + Math.random() * 15;
         const timing: KeyframeAnimationOptions = { duration: TRAIL_DURATION, fill: 'both' };
         running.set(card, [
           card.animate(cardKeyframes(fromX, fromY, x, y, rot, drop), timing),
@@ -109,7 +109,7 @@ export function ImageTrail() {
       pressed = false;
     };
     const onResize = () => {
-      gap = spawnGap(cards[0].offsetWidth || 130);
+      gap = spawnGap(cards[0].offsetWidth || 65);
     };
 
     window.addEventListener('pointermove', onMove, { passive: true });

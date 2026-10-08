@@ -7,6 +7,7 @@ import { ProjectDetailModal } from './ProjectDetailModal';
 import { splitAccent } from './hero/text';
 import { mediumOf, thumbOf } from '../data/thumbs';
 import { useScrollScale } from '../hooks/useScrollScale';
+import { sfx } from '../sound';
 import type { ProjectItem } from '../data/content';
 
 const EASE = [0.25, 0.1, 0.25, 1] as const;
@@ -51,8 +52,13 @@ function FeaturedStage({ project, onOpen }: FeaturedStageProps) {
   const [visible, setVisible] = useState(false);
 
   const show = useCallback(
-    (index: number) => {
+    (index: number, user = false) => {
       if (coolingRef.current || index === active) return;
+      // Only a picked shot sounds; the auto-advance stays silent.
+      if (user) {
+        sfx.play('tick', { step: index + 2, intensity: 0.7 });
+        sfx.play('slide', { intensity: 0.5, pan: Math.sign(index - active) * 0.3 });
+      }
       coolingRef.current = true;
       setActive(index);
       window.setTimeout(() => {
@@ -121,6 +127,7 @@ function FeaturedStage({ project, onOpen }: FeaturedStageProps) {
           <button
             type="button"
             className="stage-cta"
+            data-sfx="off"
             onClick={() => onOpen(active)}
             aria-label={`${t.projects.detailsLabel} ${project.title}`}
           >
@@ -135,7 +142,8 @@ function FeaturedStage({ project, onOpen }: FeaturedStageProps) {
               <button
                 key={image.src}
                 type="button"
-                onClick={() => show(i)}
+                data-sfx="off"
+                onClick={() => show(i, true)}
                 aria-label={`${project.title}: ${i + 1}/${images.length} — ${image.alt}`}
                 aria-pressed={i === active}
                 className={i === active ? 'is-active' : ''}
@@ -168,7 +176,13 @@ function BentoCard({ project, span, origin, onOpen }: BentoCardProps) {
   return (
     <li className={span === 7 ? 'md:col-span-7' : 'md:col-span-5'}>
       <div data-scroll-scale data-origin={origin} className="h-full will-change-transform">
-        <article className="bento-card group">
+        <article
+          className="bento-card group"
+          data-sfx-hover="off"
+          onPointerEnter={(e) => {
+            if (e.pointerType === 'mouse') sfx.play('hover', { intensity: 0.8, rate: 0.85, pan: sfx.panAt(e.clientX) });
+          }}
+        >
           <div className="bento-media">
             {cover ? (
               <img
@@ -217,6 +231,7 @@ function BentoCard({ project, span, origin, onOpen }: BentoCardProps) {
             type="button"
             onClick={onOpen}
             className="bento-hit"
+            data-sfx="off"
             aria-label={`${t.projects.detailsLabel} ${project.title}`}
           />
         </article>
@@ -245,6 +260,7 @@ export function ProjectsSection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-100px' }}
           transition={{ duration: 1, ease: EASE }}
+          onViewportEnter={() => sfx.play('reveal', { intensity: 0.5, source: 'auto' })}
         >
           <div>
             <p className="flex items-center gap-3 text-white/45 text-xs uppercase tracking-[0.3em] mb-5">
@@ -257,7 +273,7 @@ export function ProjectsSection() {
             </h2>
             <p className="mt-4 text-white/55 text-sm md:text-base max-w-md">{t.projects.intro}</p>
           </div>
-          <a href="#archive" className="gradient-ring-btn hidden md:inline-flex">
+          <a href="#archive" className="gradient-ring-btn hidden md:inline-flex" data-sfx="press">
             <span>
               {t.projects.archiveLink}
               <ArrowRight size={15} aria-hidden="true" />

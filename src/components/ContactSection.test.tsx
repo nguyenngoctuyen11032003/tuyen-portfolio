@@ -1,5 +1,6 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import { sfx } from '../sound';
 import { LangProvider } from '../context/LangContext';
 import { links } from '../data/content';
 import { ContactSection, outroStages } from './ContactSection';
@@ -39,6 +40,85 @@ describe('ContactSection', () => {
         expect(a.getAttribute('rel')).toContain('noopener');
       });
     }
+  });
+});
+
+describe('outro sounds', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+  });
+
+  /** Mounts the outro with a controllable scroll position (0..1) and a manual frame queue. */
+  function mountOutro(start: number) {
+    let p = start;
+    let io: IntersectionObserverCallback = () => {};
+    let frames: FrameRequestCallback[] = [];
+    vi.stubGlobal('matchMedia', (q: string) => ({ matches: false, media: q }) as MediaQueryList);
+    vi.stubGlobal('requestAnimationFrame', (cb: FrameRequestCallback) => frames.push(cb));
+    vi.stubGlobal(
+      'IntersectionObserver',
+      class {
+        constructor(cb: IntersectionObserverCallback) {
+          io = cb;
+        }
+        observe() {}
+        disconnect() {}
+      }
+    );
+    const play = vi.spyOn(sfx, 'play');
+    const { container } = render(
+      <LangProvider>
+        <ContactSection />
+      </LangProvider>
+    );
+    const section = container.querySelector('section')!;
+    const travel = 1000;
+    section.getBoundingClientRect = () =>
+      ({ top: -p * travel, height: window.innerHeight + travel }) as DOMRect;
+    const flush = () => {
+      const run = frames;
+      frames = [];
+      run.forEach((cb) => cb(0));
+    };
+    const visible = (on: boolean) => {
+      io([{ isIntersecting: on } as IntersectionObserverEntry], {} as IntersectionObserver);
+      flush();
+    };
+    const scrollTo = (next: number) => {
+      p = next;
+      window.dispatchEvent(new Event('scroll'));
+      flush();
+    };
+    return { play, visible, scrollTo, ids: () => play.mock.calls.map((c) => c[0]) };
+  }
+
+  it('plays each stage once on the way down and stays silent on the way back up', () => {
+    const o = mountOutro(0);
+    o.visible(true);
+    expect(o.ids()).toEqual([]);
+    o.scrollTo(0.3);
+    expect(o.ids()).toEqual(['swell']);
+    o.scrollTo(1);
+    expect(o.ids()).toEqual(['swell', 'reveal', 'whoosh', 'drop', 'chime', 'tick']);
+    o.play.mockClear();
+    o.scrollTo(0);
+    o.scrollTo(1);
+    expect(o.ids()).toEqual(['swell', 'reveal', 'whoosh', 'drop', 'chime', 'tick']);
+    o.play.mockClear();
+    o.scrollTo(0.98);
+    expect(o.ids()).toEqual([]);
+  });
+
+  it('adopts the current state silently on a deep link or re-entry', () => {
+    const o = mountOutro(1);
+    o.visible(true);
+    expect(o.ids()).toEqual([]);
+    o.visible(false);
+    o.scrollTo(0);
+    o.visible(true);
+    o.scrollTo(0.01);
+    expect(o.ids()).toEqual([]);
   });
 });
 

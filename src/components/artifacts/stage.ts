@@ -23,6 +23,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { clamp, damp, easeInCubic, easeOutCubic, outBack, radiusPx } from './math';
+import { sfx } from '../../sound';
 
 export type LoadState = 'idle' | 'loading' | 'ready' | 'error';
 export type LightMode = 'night' | 'day';
@@ -111,6 +112,12 @@ export class ArtifactStage {
   private homing = false;
   private velX = 0;
   private velY = 0;
+
+  // Sound: zoom detents (one notch per ~12.7% of zoom), edge bump, held-arrow throttle.
+  private lastNotch = 0;
+  private lastDetentAt = 0;
+  private wasAtEdge = false;
+  private lastNudge = 0;
 
   // Pointers.
   private pointers = new Map<number, { x: number; y: number }>();
@@ -213,6 +220,8 @@ export class ArtifactStage {
     this.turnQueue = 0;
     this.homing = false;
     this.zoomTarget = 1;
+    this.lastNotch = 0;
+    this.wasAtEdge = false;
     this.emitZoom();
 
     const incoming = this.rigs[index];
@@ -239,14 +248,32 @@ export class ArtifactStage {
     void this.load(index);
   }
 
-  zoomBy(factor: number) {
-    this.setZoom(this.zoomTarget * factor);
+  zoomBy(factor: number, opts?: { silent?: boolean }) {
+    this.setZoom(this.zoomTarget * factor, opts);
   }
 
-  setZoom(zoom: number) {
+  /** `silent`: the caller plays its own sound, so skip the detent tick and the edge bump. */
+  setZoom(zoom: number, opts?: { silent?: boolean }) {
     this.zoomTarget = clamp(zoom, ZOOM_MIN, ZOOM_MAX);
+    const notch = Math.floor(Math.log(this.zoomTarget) / 0.12);
+    const atEdge = this.zoomTarget === ZOOM_MIN || this.zoomTarget === ZOOM_MAX;
+    if (!opts?.silent && sfx.ready()) {
+      const now = performance.now();
+      if (atEdge && !this.wasAtEdge) {
+        sfx.play('bump', { intensity: 0.5 });
+      } else if (notch !== this.lastNotch && now - this.lastDetentAt > 83) {
+        sfx.play('tick', { step: notch + 5, intensity: 0.4 });
+        this.lastDetentAt = now;
+      }
+    }
+    this.lastNotch = notch;
+    this.wasAtEdge = atEdge;
     this.touch();
     this.emitZoom();
+  }
+
+  getZoomTarget() {
+    return this.zoomTarget;
   }
 
   /** Queue a yaw turn in radians (consumed smoothly each frame). */
@@ -257,10 +284,11 @@ export class ArtifactStage {
   }
 
   resetView() {
+    if (sfx.ready()) sfx.play('glide', { intensity: 0.3, rate: 1.1 });
     this.homing = true;
     this.velX = this.velY = 0;
     this.turnQueue = 0;
-    this.setZoom(1);
+    this.setZoom(1, { silent: true });
   }
 
   setFocus(on: boolean) {
@@ -413,6 +441,7 @@ export class ArtifactStage {
       stage.setPointerCapture(e.pointerId);
       this.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
       this.engaged = true;
+      if (this.pointers.size === 1 && sfx.ready()) sfx.play('tap', { rate: 1.3, intensity: 0.35 });
       this.homing = false;
       this.velX = this.velY = 0;
       this.lastMove = performance.now();
@@ -507,6 +536,14 @@ export class ArtifactStage {
           handled = false;
       }
       if (handled) {
+        const arrow = e.key.startsWith('Arrow');
+        const now = performance.now();
+        if (arrow && sfx.ready() && (!e.repeat || now - this.lastNudge > 90)) {
+          this.lastNudge = now;
+          const positive = e.key === 'ArrowRight' || e.key === 'ArrowUp';
+          const horizontal = e.key === 'ArrowLeft' ? -1 : e.key === 'ArrowRight' ? 1 : 0;
+          sfx.play('tick', { step: positive ? 4 : 2, intensity: 0.4, pan: horizontal * 0.3 });
+        }
         e.preventDefault();
         this.homing = e.key === '0';
         this.touch();
@@ -554,6 +591,17 @@ export class ArtifactStage {
       this.velX *= decay;
       this.velY *= decay;
       if (Math.abs(this.velX) + Math.abs(this.velY) < 0.002) this.velX = this.velY = 0;
+      // Fling texture (rad/s); the engine throttles by intensity. Idle sway stays silent.
+      if (sfx.ready()) {
+        const speed = Math.hypot(this.velX, this.velY);
+        if (speed > 0.4) {
+          sfx.play('grain', {
+            intensity: Math.min(1, speed / 8),
+            rate: 1.4,
+            pan: Math.max(-0.5, Math.min(0.5, this.velX / 8)),
+          });
+        }
+      }
     }
     if (Math.abs(this.turnQueue) > 1e-4) {
       const step = this.turnQueue * (1 - Math.exp(-dt * 4.2));
@@ -568,6 +616,7 @@ export class ArtifactStage {
       if (rig.spin.quaternion.angleTo(rig.home) < 1e-3) {
         rig.spin.quaternion.copy(rig.home);
         this.homing = false;
+        if (sfx.ready()) sfx.play('tick', { step: 5, intensity: 0.5 });
       }
     }
 

@@ -845,6 +845,9 @@ img.dd-layer.is-contain {
   border: 1px solid var(--hdr-line);
   font-size: 13.5px;
 }
+.hdr-sheet .sound-toggle--sheet {
+  margin: 10px 0 0 12px;
+}
 .hdr-sheet-cta {
   display: flex;
   align-items: center;

@@ -8,7 +8,7 @@ export const MAX_PER_FRAME = 3;
 
 /** Cursor travel (px) between two cards, scaled to the card so the stack overlaps the same at any size. */
 export function spawnGap(cardSize: number): number {
-  return Math.max(52, cardSize * 0.42);
+  return Math.max(26, cardSize * 0.42);
 }
 
 /** Lean into the direction of travel (`ux` is the unit x of the path) plus a little jitter. */

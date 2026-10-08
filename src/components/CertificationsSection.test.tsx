@@ -1,8 +1,9 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { LangProvider } from '../context/LangContext';
 import { CertificationsSection } from './CertificationsSection';
 import { sandParams } from './ui/SandTransition';
+import { sfx } from '../sound';
 
 function setup() {
   render(
@@ -40,6 +41,31 @@ describe('CertificationsSection', () => {
     expect(
       await screen.findByRole('img', { name: 'Oracle Cloud Infrastructure 2025 Certified Foundations Associate' }, { timeout: 3000 })
     ).toBeInTheDocument();
+  });
+});
+
+describe('CertificationsSection sounds', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('plays sand when another certificate is picked and stays silent on the open one', () => {
+    const play = vi.spyOn(sfx, 'play');
+    setup();
+    fireEvent.click(screen.getByRole('button', { name: 'OCI 2025 · Architect Associate' }));
+    expect(play).not.toHaveBeenCalledWith('sand');
+    fireEvent.click(screen.getByRole('button', { name: 'OCI 2025 · Foundations Associate' }));
+    expect(play).toHaveBeenCalledWith('sand');
+  });
+
+  it('chimes on the verify link without stopping the navigation', () => {
+    const play = vi.spyOn(sfx, 'play');
+    setup();
+    const link = screen.getByRole('link', { name: /Xác minh trên Oracle/ });
+    expect(link).toHaveAttribute('data-sfx', 'off');
+    expect(fireEvent.click(link)).toBe(true);
+    expect(play).toHaveBeenCalledWith('drop', { intensity: 0.7 });
+    expect(play).toHaveBeenCalledWith('chime', { delay: 70, intensity: 0.6 });
   });
 });
 

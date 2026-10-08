@@ -15,6 +15,7 @@ import { CertificationsSection } from './components/CertificationsSection';
 import { ContactSection } from './components/ContactSection';
 import { CursorDot } from './components/ui/CursorDot';
 import { ImageTrail } from './components/ui/ImageTrail';
+import { SoundProvider } from './sound';
 
 function App() {
   // Decided once on first render; the page itself renders underneath the intro.
@@ -22,27 +23,29 @@ function App() {
 
   return (
     <LangProvider>
-      <MotionConfig reducedMotion="user">
-        <IntroDoneContext.Provider value={introDone}>
-          <Navbar />
-          <main className="bg-black">
-            <HeroSection />
-            <AboutSection />
-            <ExperienceSection />
-            <SkillsSection />
-            <ArchiveSphere />
-            <ProjectsSection />
-            <ArtifactAtlas />
-            <CertificationsSection />
-            <ContactSection />
-          </main>
-          <AnimatePresence>
-            {!introDone && <CinematicIntro key="intro" onComplete={() => setIntroDone(true)} />}
-          </AnimatePresence>
-          <ImageTrail />
-          <CursorDot />
-        </IntroDoneContext.Provider>
-      </MotionConfig>
+      <SoundProvider>
+        <MotionConfig reducedMotion="user">
+          <IntroDoneContext.Provider value={introDone}>
+            <Navbar />
+            <main className="bg-black">
+              <HeroSection />
+              <AboutSection />
+              <ExperienceSection />
+              <SkillsSection />
+              <ArchiveSphere />
+              <ProjectsSection />
+              <ArtifactAtlas />
+              <CertificationsSection />
+              <ContactSection />
+            </main>
+            <AnimatePresence>
+              {!introDone && <CinematicIntro key="intro" onComplete={() => setIntroDone(true)} />}
+            </AnimatePresence>
+            <ImageTrail />
+            <CursorDot />
+          </IntroDoneContext.Provider>
+        </MotionConfig>
+      </SoundProvider>
     </LangProvider>
   );
 }

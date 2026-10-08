@@ -1,6 +1,7 @@
 import type { MouseEvent, ReactNode } from 'react';
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+import { sfx } from '../../sound';
 
 interface TiltCardProps {
   children: ReactNode;
@@ -36,6 +37,7 @@ export function TiltCard({ children, className = '' }: TiltCardProps) {
 
   function handleMouseEnter() {
     setHovering(true);
+    sfx.play('hover', { intensity: 0.6 });
   }
 
   function handleMouseLeave() {

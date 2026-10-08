@@ -6,6 +6,7 @@ import { TechIcon, hoverColor } from './ui/techIcons';
 import { TECH_ICONS } from './ui/techIconData';
 import { FOCUS_STOPS, SCROLL_LENGTH, VAR_TARGETS, computeFrame, lerp } from './skills/cinema';
 import { archPositions } from './skills/arch';
+import { sfx, milestone } from '../sound';
 import './skills/skills.css';
 
 /** Secondary stack icons scattered over the two foreground slabs that part on scroll. */
@@ -32,6 +33,8 @@ export function SkillsSection() {
   const archSpotsPhone = archPositions(s.core.length, 1.45);
   const sectionRef = useRef<HTMLElement>(null);
   const controlsRef = useRef<HTMLDivElement>(null);
+  /** The scrubbed scroll distance, written every frame so hover handlers never read layout. */
+  const smoothRef = useRef(0);
 
   const groups = s.categories;
   const count = groups.length;
@@ -64,6 +67,16 @@ export function SkillsSection() {
     const written: Record<string, string> = {};
     const arch = section.querySelector<HTMLElement>('.tech-arch');
 
+    // Story beats of the film, each sounding once on the way down (re-armed after scrolling back).
+    const marks = [
+      { m: milestone(600, 450), play: () => sfx.play('whoosh', { intensity: 0.6, rate: 0.9, source: 'auto' }) },
+      { m: milestone(1350, 1200), play: () => sfx.play('whoosh', { intensity: 0.8, rate: 1.25, source: 'auto' }) },
+      { m: milestone(1800, 1650), play: () => sfx.play('chime', { rate: 0.5, intensity: 0.6, source: 'auto' }) },
+      { m: milestone(2800, 2650), play: () => sfx.play('whoosh', { intensity: 0.6, pan: 0.4, source: 'auto' }) },
+    ];
+    let prevSmooth = 0;
+    let prevReady = false;
+
     const distance = () =>
       Math.min(
         Math.max(-section.getBoundingClientRect().top, 0),
@@ -76,7 +89,8 @@ export function SkillsSection() {
       // All layout reads happen here, before this frame's writes.
       const target = distance();
       const archH = arch?.offsetHeight ?? 0;
-      smooth = !initialized || still ? target : lerp(smooth, target, 0.14);
+      const snap = !initialized || still;
+      smooth = snap ? target : lerp(smooth, target, 0.14);
       initialized = true;
       if (Math.abs(smooth - target) < 0.08) smooth = target;
       mx = still ? 0 : lerp(mx, targetMx, 0.12);
@@ -92,6 +106,21 @@ export function SkillsSection() {
         else section.style.setProperty(key, value);
       }
       controlsRef.current?.classList.toggle('is-ready', controlsReady);
+
+      smoothRef.current = smooth;
+      if (snap) {
+        // Jumps (first frame, re-entry, reduced motion) only take the current state, silently.
+        marks.forEach((k) => k.m.sync(smooth));
+      } else {
+        const fired = marks.filter((k) => k.m.update(smooth));
+        // A burst of beats crossed in one go plays only the last of them.
+        if (smooth > prevSmooth && fired.length > 0 && Math.abs(smooth - prevSmooth) < 220) {
+          fired[fired.length - 1].play();
+        }
+        if (controlsReady && !prevReady) sfx.play('tap', { rate: 0.8, intensity: 0.6, source: 'auto' });
+      }
+      prevReady = controlsReady;
+      prevSmooth = smooth;
 
       if (
         !still &&
@@ -158,10 +187,19 @@ export function SkillsSection() {
     if (active >= count * 2) jump(active - count);
     else if (active < count) jump(active + count);
   };
+  /** Picking a card: a slide toward it, or a tap when it is already the active one. */
+  const select = (index: number) => {
+    sfx.play(index === active ? 'tap' : 'slide', { pan: Math.sign(index - active) * 0.4 });
+    setActive(index);
+  };
+  const step = (dir: number) => {
+    sfx.play('slide', { intensity: 1, pan: dir * 0.4, rate: dir > 0 ? 1.04 : 0.96 });
+    move(dir);
+  };
   const onCardKey = (index: number) => (e: KeyboardEvent<HTMLLIElement>) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
-      setActive(index);
+      select(index);
     }
   };
 
@@ -226,6 +264,12 @@ export function SkillsSection() {
                   <li
                     key={name}
                     className="tech-tile"
+                    onPointerEnter={(e) => {
+                      // Left-to-right arpeggio, only while the arch is still on stage.
+                      if (e.pointerType === 'mouse' && smoothRef.current < 900) {
+                        sfx.play('tick', { step: i, intensity: 0.5, pan: sfx.panAt(e.clientX) });
+                      }
+                    }}
                     style={
                       {
                         '--brand': hoverColor(name),
@@ -293,7 +337,11 @@ export function SkillsSection() {
           <ShieldCheck className="tech-panel-shield" size={40} strokeWidth={1.4} aria-hidden="true" />
           <h3>{s.securityTitle}</h3>
           <p>{s.note}</p>
-          <a className="tech-pill-link" href={s.securityCta.href} onFocus={scrollToStop(FOCUS_STOPS.security)}>
+          <a
+            className="tech-pill-link"
+            href={s.securityCta.href}
+            data-sfx="press"
+            onFocus={scrollToStop(FOCUS_STOPS.security)}>
             <ArrowUpRight size={18} aria-hidden="true" />
             <span>{s.securityCta.label}</span>
           </a>
@@ -320,7 +368,8 @@ export function SkillsSection() {
                   tabIndex={real ? 0 : -1}
                   aria-hidden={real ? undefined : true}
                   aria-pressed={real ? index === active : undefined}
-                  onClick={() => setActive(index)}
+                  data-sfx="off"
+                  onClick={() => select(index)}
                   onKeyDown={onCardKey(index)}
                   onFocus={real ? scrollToStop(FOCUS_STOPS.slider) : undefined}
                 >
@@ -345,7 +394,8 @@ export function SkillsSection() {
             type="button"
             className="tech-nav"
             aria-label={s.prevLabel}
-            onClick={() => move(-1)}
+            data-sfx="off"
+            onClick={() => step(-1)}
             onFocus={scrollToStop(FOCUS_STOPS.slider)}
           >
             <ArrowLeft size={20} aria-hidden="true" />
@@ -354,7 +404,8 @@ export function SkillsSection() {
             type="button"
             className="tech-nav"
             aria-label={s.nextLabel}
-            onClick={() => move(1)}
+            data-sfx="off"
+            onClick={() => step(1)}
             onFocus={scrollToStop(FOCUS_STOPS.slider)}
           >
             <ArrowRight size={20} aria-hidden="true" />

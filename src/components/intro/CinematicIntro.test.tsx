@@ -4,6 +4,7 @@ import { LangProvider } from '../../context/LangContext';
 import { INTRO_STORAGE_KEY, shouldPlayIntro } from '../../context/IntroContext';
 import { CinematicIntro, INTRO_TIMING, bootLines, okLine } from './CinematicIntro';
 import { content } from '../../data/content';
+import { sfx } from '../../sound';
 
 function setup() {
   const onComplete = vi.fn();
@@ -22,6 +23,9 @@ describe('CinematicIntro', () => {
   });
   afterEach(() => {
     vi.useRealTimers();
+    vi.restoreAllMocks();
+    act(() => sfx.setEnabled(false));
+    localStorage.clear();
     document.documentElement.style.overflow = '';
   });
 
@@ -51,6 +55,24 @@ describe('CinematicIntro', () => {
     act(() => vi.advanceTimersByTime(INTRO_TIMING.complete));
     expect(onComplete).toHaveBeenCalledTimes(1);
     expect(sessionStorage.getItem(INTRO_STORAGE_KEY)).toBe('true');
+  });
+
+  it('turns sound on from its own button without skipping the intro', () => {
+    const onComplete = setup();
+    fireEvent.click(screen.getByRole('button', { name: 'BẬT ÂM THANH' }));
+    expect(sfx.isEnabled()).toBe(true);
+    expect(onComplete).not.toHaveBeenCalled();
+    expect(screen.getByRole('button', { name: 'ÂM THANH ĐÃ BẬT' })).toHaveAttribute('aria-pressed', 'true');
+    act(() => vi.advanceTimersByTime(1400));
+    expect(screen.queryByRole('button', { name: 'ÂM THANH ĐÃ BẬT' })).not.toBeInTheDocument();
+  });
+
+  it('plays one soft swell when skipped', () => {
+    const play = vi.spyOn(sfx, 'play');
+    setup();
+    fireEvent.click(screen.getByRole('button', { name: 'SKIP →' }));
+    expect(play).toHaveBeenCalledWith('swell', { intensity: 0.35 });
+    expect(play.mock.calls.filter((c) => c[0] === 'swell')).toHaveLength(1);
   });
 
   it('counts the real projects and screenshots in the boot log', () => {

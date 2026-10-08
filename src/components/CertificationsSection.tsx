@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { ArrowUpRight, Award, Cloud, ShieldCheck } from 'lucide-react';
 import { useLang } from '../context/LangContext';
 import { SandTransition } from './ui/SandTransition';
+import { sfx } from '../sound';
 import type { CertificationItem } from '../data/content';
 
 const CYCLE_MS = 5000;
@@ -68,6 +69,7 @@ export function CertificationsSection() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: '-100px' }}
             transition={{ duration: 1, ease: EASE }}
+            onViewportEnter={() => sfx.play('reveal', { intensity: 0.5, source: 'auto' })}
           >
             {c.statement[0]}
             <span className="cert-icons" aria-hidden="true">
@@ -161,7 +163,9 @@ export function CertificationsSection() {
                     type="button"
                     className="cert-item-btn"
                     aria-expanded={isActive}
+                    data-sfx="off"
                     onClick={() => {
+                      if (i !== active) sfx.play('sand');
                       setActive(i);
                       setPicked(true);
                     }}
@@ -237,6 +241,11 @@ export function CertificationsSection() {
                               rel="noopener noreferrer"
                               aria-label={`${c.verifyLabel} — ${item.name} (${t.a11y.openInNewTab})`}
                               className="cert-verify"
+                              data-sfx="off"
+                              onClick={() => {
+                                sfx.play('drop', { intensity: 0.7 });
+                                sfx.play('chime', { delay: 70, intensity: 0.6 });
+                              }}
                             >
                               <span className="cert-verify-fill" aria-hidden="true" />
                               <ShieldCheck size={16} aria-hidden="true" />

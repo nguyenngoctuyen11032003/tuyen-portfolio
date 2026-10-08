@@ -1,6 +1,7 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import { LangProvider } from '../context/LangContext';
+import { sfx } from '../sound';
 import { Navbar } from './Navbar';
 
 describe('Navbar', () => {
@@ -72,5 +73,49 @@ describe('Navbar', () => {
 
     document.body.removeChild(skillsSection);
     globalThis.IntersectionObserver = originalObserver;
+  });
+});
+
+describe('Navbar sounds', () => {
+  afterEach(() => vi.restoreAllMocks());
+
+  it('puts a sound toggle in the header and the mobile sheet, and sounds the language switch', () => {
+    const play = vi.spyOn(sfx, 'play');
+    render(
+      <LangProvider>
+        <Navbar />
+      </LangProvider>
+    );
+    expect(screen.getAllByRole('button', { name: 'Âm thanh', hidden: true })).toHaveLength(2);
+
+    const lang = screen.getByRole('button', { name: 'Chuyển ngôn ngữ' });
+    expect(lang).toHaveAttribute('data-sfx', 'off');
+    fireEvent.click(lang);
+    expect(play).toHaveBeenCalledWith('lang', { rate: 1.06 });
+  });
+
+  it('opens with menuOpen, switches with a directional slide, closes with menuClose, but not via a panel link', () => {
+    const play = vi.spyOn(sfx, 'play');
+    const { container } = render(
+      <LangProvider>
+        <Navbar />
+      </LangProvider>
+    );
+    const trigger = (id: string) => container.querySelector<HTMLButtonElement>(`[data-menu="${id}"]`)!;
+    expect(trigger('profile')).toHaveAttribute('data-sfx-hover', 'off');
+
+    fireEvent.click(trigger('profile'));
+    expect(play).toHaveBeenLastCalledWith('menuOpen', expect.objectContaining({ pan: expect.any(Number) }));
+
+    fireEvent.click(trigger('work'));
+    expect(play).toHaveBeenLastCalledWith('slide', { intensity: 0.3, rate: 1.06, pan: 0.25 });
+
+    fireEvent.click(trigger('work'));
+    expect(play).toHaveBeenLastCalledWith('menuClose');
+
+    play.mockClear();
+    fireEvent.click(trigger('connect'));
+    fireEvent.click(container.querySelector('[data-panel="connect"] a')!);
+    expect(play.mock.calls.map((c) => c[0])).toEqual(['menuOpen']);
   });
 });

@@ -4,6 +4,7 @@ import { useIntroDone } from '../context/IntroContext';
 import { links } from '../data/content';
 import { thumbOf } from '../data/thumbs';
 import { TechIcon } from './ui/techIcons';
+import { sfx, SoundToggle } from '../sound';
 import { NavSphere, NavStackArch } from './nav/NavPreviews';
 import avatarUrl from '../assets/avatar.jpg';
 import './nav/navbar.css';
@@ -59,6 +60,11 @@ export function Navbar() {
   const [tucked, setTucked] = useState(false);
   const [profileRow, setProfileRow] = useState(0);
   const [mediaArmed, setMediaArmed] = useState(false);
+  const sheetOpenRef = useRef(sheetOpen);
+
+  useEffect(() => {
+    sheetOpenRef.current = sheetOpen;
+  }, [sheetOpen]);
 
   const featured = WORK_FEATURED.map((src) => t.projects.items.find((p) => p.images?.[0]?.src === src)).filter(
     (p) => p !== undefined
@@ -161,8 +167,11 @@ export function Navbar() {
         panels.forEach((p) => p.classList.remove('snap'));
         dd!.classList.add('open');
         requestAnimationFrame(() => dd!.classList.remove('instant'));
+        const r = triggerOf(id).getBoundingClientRect();
+        sfx.play('menuOpen', { pan: sfx.panAt(r.left + r.width / 2) });
       } else {
         const dir = MENUS.indexOf(id) > MENUS.indexOf(current) ? 1 : -1;
+        sfx.play('slide', { intensity: 0.3, rate: dir > 0 ? 1.06 : 0.94, pan: dir * 0.25 });
         panelOf(current).dataset.state = dir > 0 ? 'exit-left' : 'exit-right';
         next.classList.add('snap');
         next.dataset.state = dir > 0 ? 'exit-right' : 'exit-left';
@@ -177,16 +186,19 @@ export function Navbar() {
       setTucked(false);
     }
 
-    function close() {
+    /** `silent`: closed by a panel link (its navigation sound is enough), a language switch or unmount. */
+    function close(silent = false) {
+      const wasOpen = current !== null;
       dd!.classList.remove('open');
       if (current) panelOf(current).removeAttribute('data-state');
       triggers.forEach((tr) => tr.setAttribute('aria-expanded', 'false'));
       current = null;
+      if (wasOpen && !silent) sfx.play('menuClose');
     }
 
     function scheduleClose(ms = 140) {
       window.clearTimeout(closeTimer);
-      closeTimer = window.setTimeout(close, ms);
+      closeTimer = window.setTimeout(() => close(), ms);
     }
 
     const cleanups: (() => void)[] = [];
@@ -214,7 +226,7 @@ export function Navbar() {
       if (!nav.contains(e.relatedTarget as Node | null)) scheduleClose(0);
     });
     on(dd, 'click', (e) => {
-      if ((e.target as HTMLElement).closest('a')) close();
+      if ((e.target as HTMLElement).closest('a')) close(true);
     });
     on(document, 'keydown', (e) => {
       if (e.key !== 'Escape') return;
@@ -223,7 +235,10 @@ export function Navbar() {
         close();
         tr.focus();
       }
-      setSheetOpen(false);
+      if (sheetOpenRef.current) {
+        sfx.play('menuClose');
+        setSheetOpen(false);
+      }
     });
     on(document, 'pointerdown', (e) => {
       if (current && !nav.contains(e.target as Node)) close();
@@ -235,13 +250,17 @@ export function Navbar() {
     return () => {
       window.clearTimeout(closeTimer);
       cleanups.forEach((fn) => fn());
-      close();
+      close(true);
     };
   }, [lang]);
 
   const profileActive = menu.profileItems.some((i) => i.href === activeHref);
   const workActive = WORK_SECTIONS.includes(activeHref);
   const current = (href: string) => (activeHref === href ? 'true' : undefined);
+  const pick = (i: number) => {
+    if (i !== profileRow) sfx.play('tick', { step: i, intensity: 0.5 });
+    setProfileRow(i);
+  };
 
   const connectItems = [
     { label: 'GitHub', desc: menu.connectDesc[0], href: links.github, external: true },
@@ -276,6 +295,8 @@ export function Navbar() {
             <li>
               <button type="button" className={`hdr-trigger${profileActive ? ' is-current' : ''}`} data-menu="profile"
                 aria-expanded="false"
+                data-sfx="off"
+                data-sfx-hover="off"
                 onPointerEnter={() => setMediaArmed(true)}
                 onFocus={() => setMediaArmed(true)}
               >
@@ -284,13 +305,13 @@ export function Navbar() {
               </button>
             </li>
             <li>
-              <button type="button" className={`hdr-trigger${workActive ? ' is-current' : ''}`} data-menu="work" aria-expanded="false">
+              <button type="button" className={`hdr-trigger${workActive ? ' is-current' : ''}`} data-menu="work" aria-expanded="false" data-sfx="off" data-sfx-hover="off">
                 {menu.work}
                 <Chevron />
               </button>
             </li>
             <li>
-              <button type="button" className="hdr-trigger" data-menu="connect" aria-expanded="false">
+              <button type="button" className="hdr-trigger" data-menu="connect" aria-expanded="false" data-sfx="off" data-sfx-hover="off">
                 {menu.connect}
                 <Chevron />
               </button>
@@ -307,8 +328,9 @@ export function Navbar() {
                     href={item.href}
                     aria-current={current(item.href)}
                     className={`dd-row${profileRow === i ? ' is-active' : ''}`}
-                    onPointerEnter={() => setProfileRow(i)}
-                    onFocus={() => setProfileRow(i)}
+                    data-sfx-hover="off"
+                    onPointerEnter={() => pick(i)}
+                    onFocus={() => pick(i)}
                   >
                     <strong>{item.label}</strong>
                     <span>{item.desc}</span>
@@ -389,11 +411,21 @@ export function Navbar() {
         </nav>
 
         <div className="hdr-actions">
-          <button type="button" className="hdr-lang" onClick={toggleLang} aria-label={t.a11y.toggleLanguage}>
+          <SoundToggle />
+          <button
+            type="button"
+            className="hdr-lang"
+            data-sfx="off"
+            onClick={() => {
+              sfx.play('lang', { rate: lang === 'vi' ? 1.06 : 0.94 });
+              toggleLang();
+            }}
+            aria-label={t.a11y.toggleLanguage}
+          >
             <span className={lang === 'vi' ? 'is-on' : ''}>VI</span>
             <span className={lang === 'en' ? 'is-on' : ''}>EN</span>
           </button>
-          <a href="#contact" className="hdr-cta">
+          <a href="#contact" className="hdr-cta" data-sfx="press">
             {t.nav.contactCta}
             <Arrow />
           </a>
@@ -402,7 +434,11 @@ export function Navbar() {
             className="hdr-menu-btn"
             aria-label={t.a11y.toggleMenu}
             aria-expanded={sheetOpen}
-            onClick={() => setSheetOpen((v) => !v)}
+            data-sfx="off"
+            onClick={() => {
+              sfx.play(sheetOpen ? 'menuClose' : 'menuOpen', { intensity: 1 });
+              setSheetOpen((v) => !v);
+            }}
           >
             <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
               <path
@@ -451,7 +487,8 @@ export function Navbar() {
             {menu.cvLabel}
           </a>
         </div>
-        <a href="#contact" className="hdr-sheet-cta" onClick={() => setSheetOpen(false)}>
+        <SoundToggle variant="sheet" />
+        <a href="#contact" className="hdr-sheet-cta" data-sfx="press" onClick={() => setSheetOpen(false)}>
           {t.nav.contactCta}
           <Arrow />
         </a>

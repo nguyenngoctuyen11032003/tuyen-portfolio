@@ -255,6 +255,15 @@ export interface Content {
     backToTop: string;
     openInNewTab: string;
   };
+  sound: {
+    label: string;
+    turnOn: string;
+    turnOff: string;
+    stateOn: string;
+    stateOff: string;
+    introCta: string;
+    introOn: string;
+  };
 }
 
 const caseStudy = (file: string) => `${links.caseStudies}/blob/main/${file}`;
@@ -831,6 +840,15 @@ export const content: Record<Lang, Content> = {
       backToTop: 'Lên đầu trang',
       openInNewTab: 'mở trong tab mới',
     },
+    sound: {
+      label: 'Âm thanh',
+      turnOn: 'Bật âm thanh',
+      turnOff: 'Tắt âm thanh',
+      stateOn: 'Đang bật',
+      stateOff: 'Đang tắt',
+      introCta: 'BẬT ÂM THANH',
+      introOn: 'ÂM THANH ĐÃ BẬT',
+    },
   },
   en: {
     nav: {
@@ -1335,6 +1353,15 @@ export const content: Record<Lang, Content> = {
       scrollDown: 'Scroll down',
       backToTop: 'Back to top',
       openInNewTab: 'opens in a new tab',
+    },
+    sound: {
+      label: 'Sound',
+      turnOn: 'Turn sound on',
+      turnOff: 'Turn sound off',
+      stateOn: 'On',
+      stateOff: 'Off',
+      introCta: 'SOUND ON',
+      introOn: 'SOUND ENABLED',
     },
   },
 };

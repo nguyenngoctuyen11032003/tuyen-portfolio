@@ -1,8 +1,9 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import { LangProvider } from '../context/LangContext';
 import { SkillsSection } from './SkillsSection';
 import { content } from '../data/content';
+import { sfx } from '../sound';
 
 function setup() {
   return render(
@@ -50,6 +51,34 @@ describe('SkillsSection', () => {
     expect(cards[2]).toHaveAttribute('aria-pressed', 'true');
     fireEvent.click(screen.getByRole('button', { name: s.prevLabel }));
     expect(cards[1]).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  describe('sounds', () => {
+    afterEach(() => vi.restoreAllMocks());
+
+    it('slides toward the arrow that was pressed and marks it as self-sounding', () => {
+      const play = vi.spyOn(sfx, 'play');
+      setup();
+      const prev = screen.getByRole('button', { name: s.prevLabel });
+      const next = screen.getByRole('button', { name: s.nextLabel });
+      expect(prev).toHaveAttribute('data-sfx', 'off');
+      expect(next).toHaveAttribute('data-sfx', 'off');
+      fireEvent.click(next);
+      expect(play).toHaveBeenLastCalledWith('slide', expect.objectContaining({ pan: 0.4, rate: 1.04 }));
+      fireEvent.click(prev);
+      expect(play).toHaveBeenLastCalledWith('slide', expect.objectContaining({ pan: -0.4, rate: 0.96 }));
+    });
+
+    it('taps the active card and slides to another one', () => {
+      const play = vi.spyOn(sfx, 'play');
+      setup();
+      const cards = within(screen.getByRole('region', { name: s.sliderLabel })).getAllByRole('button');
+      fireEvent.click(cards[0]);
+      expect(play).toHaveBeenLastCalledWith('tap', expect.anything());
+      fireEvent.keyDown(cards[2], { key: 'Enter' });
+      expect(play).toHaveBeenLastCalledWith('slide', expect.objectContaining({ pan: 0.4 }));
+      expect(cards[2]).toHaveAttribute('aria-pressed', 'true');
+    });
   });
 
   it('tells the stack and security story', () => {

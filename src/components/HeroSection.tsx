@@ -3,6 +3,7 @@ import { ArrowDown, ArrowRight, ArrowUpRight, Download, MoveHorizontal, ShieldCh
 import { useLang } from '../context/LangContext';
 import { useIntroDone } from '../context/IntroContext';
 import { links } from '../data/content';
+import { sfx } from '../sound';
 import { STARS_A, STARS_B } from './hero/stars';
 import { canRender3D } from './hero/webgl';
 import { useHanoiTime } from './hero/useHanoiTime';
@@ -57,6 +58,11 @@ export function HeroSection() {
   const [progress, setProgress] = useState(0);
   const [ready, setReady] = useState(false);
   const [settled, setSettled] = useState(false);
+  // The avatar can finish loading under the intro; its sound waits for the entrance.
+  const readyRef = useRef(false);
+  useEffect(() => {
+    readyRef.current = ready;
+  }, [ready]);
 
   useHeroMotion(motionRefs);
 
@@ -64,7 +70,16 @@ export function HeroSection() {
   useEffect(() => {
     if (!introDone) return;
     const reduced = prefersReducedMotion();
-    const start = window.setTimeout(() => setReady(true), reduced ? 0 : 120);
+    const start = window.setTimeout(
+      () => {
+        setReady(true);
+        if (reduced) return;
+        sfx.play('swell', { intensity: 0.7, source: 'auto' });
+        // Lands with the emerald dot popping in after the name.
+        sfx.play('tick', { step: 7, intensity: 0.6, delay: 1050, source: 'auto' });
+      },
+      reduced ? 0 : 120
+    );
     const settle = window.setTimeout(() => setSettled(true), reduced ? 0 : 3200);
     return () => {
       window.clearTimeout(start);
@@ -81,14 +96,30 @@ export function HeroSection() {
     const els = statRefs.current;
     let raf = 0;
     let begin = 0;
+    let done = false;
+    // What each number showed last frame (the first frame shows 0).
+    const lastShown = values.map(() => 0);
     const step = (now: number) => {
       begin ||= now;
       const p = Math.min(1, Math.max(0, (now - begin - COUNT_DELAY) / COUNT_DURATION));
       const eased = 1 - Math.pow(1 - p, 3);
+      let changed = false;
       values.forEach((v, i) => {
+        if (v === null) return;
+        const shown = Math.round(v * eased);
+        if (shown !== lastShown[i]) {
+          lastShown[i] = shown;
+          changed = true;
+        }
         const el = els[i];
-        if (el && v !== null) el.textContent = String(Math.round(v * eased));
+        if (el) el.textContent = String(shown);
       });
+      // One tick per frame at most (the engine throttles further), climbing with progress.
+      if (changed) sfx.play('tick', { step: Math.round(p * 4), intensity: 0.35, source: 'auto' });
+      if (p >= 1 && !done) {
+        done = true;
+        sfx.play('chime', { intensity: 0.5, source: 'auto' });
+      }
       if (p < 1) raf = requestAnimationFrame(step);
     };
     raf = requestAnimationFrame(step);
@@ -120,7 +151,10 @@ export function HeroSection() {
           url: MODEL_URL,
           mode: avatarMode(),
           onProgress: setProgress,
-          onReady: () => setFigure('ready'),
+          onReady: () => {
+            setFigure('ready');
+            if (readyRef.current) sfx.play('reveal', { intensity: 0.6, source: 'auto' });
+          },
           onError: () => setFigure('failed'),
         });
       })
@@ -230,7 +264,7 @@ export function HeroSection() {
         </figure>
 
         <div className="hero-actions">
-          <a href="#projects" className="hero-glow hero-anim">
+          <a href="#projects" className="hero-glow hero-anim" data-sfx="press">
             <span>{t.hero.ctaProjects}</span>
             <ArrowRight size={16} aria-hidden="true" />
             <span className="hero-glow-pool" aria-hidden="true" />

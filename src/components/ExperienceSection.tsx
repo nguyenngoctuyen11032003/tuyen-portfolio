@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import type { MouseEvent } from 'react';
-import { motion, useInView, useScroll, useSpring, useTransform } from 'framer-motion';
+import { motion, useInView, useMotionValueEvent, useScroll, useSpring, useTransform } from 'framer-motion';
 import { useLang } from '../context/LangContext';
 import { splitAccent } from './hero/text';
 import { TechTag } from './ui/TechTag';
+import { sfx, milestone } from '../sound';
 import type { Content, ExperienceItem } from '../data/content';
 
 const EASE = [0.16, 1, 0.3, 1] as const;
@@ -81,7 +82,13 @@ function ExperienceEntry({ item, index, reached, onActive }: EntryProps) {
     >
       <span className={`exp-node${reached ? ' is-on' : ''}${live ? ' is-live' : ''}`} aria-hidden="true" />
 
-      <article className={`exp-card${live ? ' is-current' : ''}`} onMouseMove={trackSpotlight}>
+      <article
+        className={`exp-card${live ? ' is-current' : ''}`}
+        onMouseMove={trackSpotlight}
+        onPointerEnter={(e) => {
+          if (e.pointerType === 'mouse') sfx.play('hover', { intensity: 0.6, pan: sfx.panAt(e.clientX) });
+        }}
+      >
         <span className="exp-num" aria-hidden="true">
           {pad(index + 1)}
         </span>
@@ -153,6 +160,29 @@ export function ExperienceSection() {
   const fill = useSpring(scrollYProgress, { stiffness: 140, damping: 30, restDelta: 0.001 });
   const headTop = useTransform(fill, (v) => `${v * 100}%`);
 
+  // A soft chime when the rail fills to the end; re-arms once it drops back below 90%.
+  const railDone = useRef(milestone(0.995, 0.9));
+  useEffect(() => {
+    railDone.current.sync(fill.get());
+  }, [fill]);
+  useMotionValueEvent(fill, 'change', (v) => {
+    if (railDone.current.update(v)) sfx.play('chime', { intensity: 0.4, source: 'auto' });
+  });
+
+  // Timeline nodes light up with a rising tick scrolling down and a low one scrolling back up.
+  // Debounced so a fast scroll past several entries only sounds where it settles.
+  const prevActive = useRef<number | null>(null);
+  useEffect(() => {
+    const id = window.setTimeout(() => {
+      const prev = prevActive.current;
+      prevActive.current = active;
+      if (prev === null || prev === active) return;
+      if (active > prev) sfx.play('tick', { step: active + 2, intensity: 0.6, source: 'auto' });
+      else sfx.play('tick', { step: active, intensity: 0.3, rate: 0.5, source: 'auto' });
+    }, 150);
+    return () => window.clearTimeout(id);
+  }, [active]);
+
   return (
     <section id="experience" aria-labelledby="experience-heading" className="exp bg-black py-24 md:py-36 px-6 noise-overlay">
       <div className="exp-glow" aria-hidden="true" />
@@ -164,6 +194,7 @@ export function ExperienceSection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-100px' }}
           transition={{ duration: 1, ease: EASE }}
+          onViewportEnter={() => sfx.play('reveal', { intensity: 0.5, source: 'auto' })}
         >
           <p className="flex items-center gap-3 text-white/45 text-xs uppercase tracking-[0.3em] mb-6">
             <span className="block w-8 h-px bg-white/25" aria-hidden="true" />

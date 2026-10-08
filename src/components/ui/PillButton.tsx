@@ -42,6 +42,8 @@ export function PillButton({
     'rounded-full px-6 py-3 text-sm font-medium transition-all duration-200 hover:scale-[1.03] active:scale-[0.97]';
   const variantClass = variant === 'solid' ? 'bg-primary text-black' : 'liquid-glass text-white';
   const classes = `${base} ${variantClass} ${className}`;
+  // The solid pill is the primary action: the click delegate plays `press` instead of `tap`.
+  const sfxMark = variant === 'solid' ? 'press' : undefined;
 
   function handleMouseMove(e: MouseEvent<HTMLElement>) {
     setOffset(computeMagneticOffset(e.currentTarget.getBoundingClientRect(), e.clientX, e.clientY));
@@ -68,6 +70,7 @@ export function PillButton({
         rel={rel ?? (target === '_blank' ? 'noopener noreferrer' : undefined)}
         download={download}
         aria-label={ariaLabel}
+        data-sfx={sfxMark}
         {...motionProps}
       >
         {children}
@@ -81,6 +84,7 @@ export function PillButton({
       onClick={onClick}
       className={classes}
       aria-label={ariaLabel}
+      data-sfx={sfxMark}
       {...motionProps}
     >
       {children}

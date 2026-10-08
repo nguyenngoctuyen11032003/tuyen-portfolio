@@ -1,6 +1,7 @@
-import { useEffect, type ReactNode } from 'react';
+import { useEffect, useRef, type ReactNode } from 'react';
 import { X } from 'lucide-react';
 import { createPortal } from 'react-dom';
+import { sfx } from '../../sound';
 
 interface ModalProps {
   open: boolean;
@@ -11,6 +12,20 @@ interface ModalProps {
 }
 
 export function Modal({ open, onClose, title, children, size = 'md' }: ModalProps) {
+  // Open/close sounds live here so every way of closing (X, Escape, backdrop) is covered once.
+  const wasOpen = useRef(false);
+  useEffect(() => {
+    if (open && !wasOpen.current) sfx.play('modalOpen');
+    if (!open && wasOpen.current) sfx.play('modalClose');
+    wasOpen.current = open;
+  }, [open]);
+  useEffect(
+    () => () => {
+      if (wasOpen.current) sfx.play('modalClose');
+    },
+    []
+  );
+
   useEffect(() => {
     if (!open) return;
     function handleKeyDown(e: KeyboardEvent) {
@@ -40,6 +55,7 @@ export function Modal({ open, onClose, title, children, size = 'md' }: ModalProp
         <button
           type="button"
           onClick={onClose}
+          data-sfx="off"
           className="absolute top-5 right-5 z-10 text-white/50 hover:text-white transition-colors"
           aria-label="Đóng"
         >

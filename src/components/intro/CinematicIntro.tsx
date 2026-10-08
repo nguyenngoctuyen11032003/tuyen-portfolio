@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useLang } from '../../context/LangContext';
 import { rememberIntroShown } from '../../context/IntroContext';
+import { sfx, useSound } from '../../sound';
 
 interface BootLine {
   at: number; // ms after mount
@@ -103,6 +104,8 @@ interface CinematicIntroProps {
  */
 export function CinematicIntro({ onComplete }: CinematicIntroProps) {
   const { t } = useLang();
+  const { enabled, setEnabled } = useSound();
+  const [soundJustOn, setSoundJustOn] = useState(false);
   const lines = useMemo(() => {
     const projects = t.projects.items;
     const shots = projects.reduce((n, p) => n + (p.images?.length ?? 0), 0);
@@ -115,14 +118,18 @@ export function CinematicIntro({ onComplete }: CinematicIntroProps) {
   const [exiting, setExiting] = useState(false);
   const exitingRef = useRef(false);
 
-  const finish = useCallback(() => {
-    if (exitingRef.current) return;
-    exitingRef.current = true;
-    setExiting(true);
-    rememberIntroShown();
-    document.documentElement.style.overflow = '';
-    onComplete();
-  }, [onComplete]);
+  const finish = useCallback(
+    (skipped: boolean) => {
+      if (exitingRef.current) return;
+      exitingRef.current = true;
+      sfx.play('swell', skipped ? { intensity: 0.35 } : { intensity: 0.8, source: 'auto' });
+      setExiting(true);
+      rememberIntroShown();
+      document.documentElement.style.overflow = '';
+      onComplete();
+    },
+    [onComplete]
+  );
 
   // Lock page scroll while the intro covers it.
   useEffect(() => {
@@ -135,16 +142,31 @@ export function CinematicIntro({ onComplete }: CinematicIntroProps) {
   }, []);
 
   useEffect(() => {
-    const timers = lines.map((line, i) => window.setTimeout(() => setShown(i + 1), line.at));
-    timers.push(window.setTimeout(() => setScene('access'), INTRO_TIMING.access));
-    timers.push(window.setTimeout(() => setSweeping(true), INTRO_TIMING.sweep));
-    timers.push(window.setTimeout(finish, INTRO_TIMING.complete));
+    const timers = lines.map((line, i) =>
+      window.setTimeout(() => {
+        setShown(i + 1);
+        sfx.play('boot', { intensity: line.ok ? 1 : line.sub ? 0.5 : 0.8, source: 'auto' });
+      }, line.at)
+    );
+    timers.push(
+      window.setTimeout(() => {
+        setScene('access');
+        if (!exitingRef.current) sfx.play('granted', { source: 'auto' });
+      }, INTRO_TIMING.access)
+    );
+    timers.push(
+      window.setTimeout(() => {
+        setSweeping(true);
+        if (!exitingRef.current) sfx.play('whoosh', { intensity: 0.5, rate: 0.8, source: 'auto' });
+      }, INTRO_TIMING.sweep)
+    );
+    timers.push(window.setTimeout(() => finish(false), INTRO_TIMING.complete));
     return () => timers.forEach((id) => window.clearTimeout(id));
   }, [lines, finish]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') finish();
+      if (e.key === 'Escape') finish(true);
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -204,7 +226,24 @@ export function CinematicIntro({ onComplete }: CinematicIntroProps) {
       <div className="intro-scanlines" aria-hidden="true" />
       {sweeping && <span className="intro-sweep" aria-hidden="true" />}
 
-      <button type="button" className="intro-skip" onClick={finish}>
+      {(!enabled || soundJustOn) && (
+        <button
+          type="button"
+          className="intro-sound"
+          data-sfx="off"
+          aria-pressed={enabled}
+          onClick={() => {
+            if (!enabled) {
+              setEnabled(true);
+              setSoundJustOn(true);
+              window.setTimeout(() => setSoundJustOn(false), 1400);
+            }
+          }}
+        >
+          {enabled ? t.sound.introOn : t.sound.introCta}
+        </button>
+      )}
+      <button type="button" className="intro-skip" onClick={() => finish(true)}>
         SKIP →
       </button>
     </motion.div>

@@ -1,8 +1,9 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { LangProvider } from '../context/LangContext';
 import { ProjectsSection, bentoOrigins, bentoSpans, yearSpan } from './ProjectsSection';
 import { content } from '../data/content';
+import { sfx } from '../sound';
 
 function setup() {
   return render(
@@ -118,6 +119,20 @@ describe('featured stage', () => {
     fireEvent.click(screen.getByRole('button', { name: (name) => name.startsWith(`${lead.title}: 2/`) }));
     fireEvent.click(screen.getByRole('button', { name: `Xem chi tiết ${lead.title}` }));
     expect(screen.getByRole('img', { name: lead.images![1].alt })).toBeInTheDocument();
+  });
+
+  it('ticks and slides when a screenshot switch is picked', () => {
+    const play = vi.spyOn(sfx, 'play');
+    setup();
+    const lead = content.vi.projects.items[0];
+    const switches = screen.getAllByRole('button', { name: (name) => name.startsWith(`${lead.title}: `) });
+    fireEvent.click(switches[0]);
+    expect(play).not.toHaveBeenCalled();
+    fireEvent.click(switches[1]);
+    expect(play).toHaveBeenCalledWith('tick', { step: 3, intensity: 0.7 });
+    expect(play).toHaveBeenCalledWith('slide', { intensity: 0.5, pan: 0.3 });
+    expect(switches[1]).toHaveAttribute('data-sfx', 'off');
+    play.mockRestore();
   });
 });
 
