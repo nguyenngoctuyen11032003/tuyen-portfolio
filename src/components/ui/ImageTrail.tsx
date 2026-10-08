@@ -5,8 +5,9 @@ import { STREAK_KEYFRAMES, TRAIL_DURATION, cardKeyframes, shuffled, spawnGap, ti
 
 // Nothing spawns while the pointer is over something to read or click, or inside a dialog.
 const QUIET = 'a, button, input, textarea, select, label, [data-shot], [role="button"], [role="dialog"], [data-no-trail]';
-// Two cards per photo, so a fast sweep never has to recycle a card that is still on screen.
-const COPIES = 2;
+// Six cards per photo: with small cards the trail deals densely, so a fast sweep needs a deep pool
+// to never recycle a card that is still on screen. Copies share a src, so nothing extra downloads.
+const COPIES = 6;
 
 /**
  * Cursor image trail: as the pointer travels, photos are dealt out evenly along its path. Each
@@ -56,7 +57,7 @@ export function ImageTrail() {
     let next = 0;
     let z = 1;
     let raf = 0;
-    let gap = spawnGap(cards[0].offsetWidth || 65);
+    let gap = spawnGap(cards[0].offsetWidth || 44);
 
     const deal = (fromX: number, fromY: number, x: number, y: number, ux: number) => {
       for (let tries = 0; tries < cards.length; tries++) {
@@ -66,7 +67,7 @@ export function ImageTrail() {
         running.get(card)?.forEach((a) => a.cancel());
         card.style.zIndex = String(z++);
         const rot = tiltFor(ux, Math.random() * 2 - 1);
-        const drop = 40 + Math.random() * 15;
+        const drop = 28 + Math.random() * 10;
         const timing: KeyframeAnimationOptions = { duration: TRAIL_DURATION, fill: 'both' };
         running.set(card, [
           card.animate(cardKeyframes(fromX, fromY, x, y, rot, drop), timing),
@@ -109,7 +110,7 @@ export function ImageTrail() {
       pressed = false;
     };
     const onResize = () => {
-      gap = spawnGap(cards[0].offsetWidth || 65);
+      gap = spawnGap(cards[0].offsetWidth || 44);
     };
 
     window.addEventListener('pointermove', onMove, { passive: true });

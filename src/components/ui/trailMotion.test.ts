@@ -4,8 +4,8 @@ import { cardKeyframes, shuffled, spawnGap, tiltFor, trailSteps } from './trailM
 
 describe('spawnGap', () => {
   it('scales with the card but never drops below a floor', () => {
-    expect(spawnGap(74)).toBeCloseTo(31.08);
-    expect(spawnGap(40)).toBe(26);
+    expect(spawnGap(50)).toBeCloseTo(21);
+    expect(spawnGap(40)).toBe(18);
   });
 });
 
