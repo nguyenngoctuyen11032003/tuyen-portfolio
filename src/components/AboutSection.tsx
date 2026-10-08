@@ -261,6 +261,7 @@ export function AboutSection() {
         return;
       }
       s.busy = true;
+      sfx.play('riser', { intensity: 1 });
       sfx.play('whoosh', { intensity: 1 });
       s.targetX = 0;
       s.targetY = 0;
@@ -272,7 +273,7 @@ export function AboutSection() {
       }, 900).then(() => {
         // Sections passed on the way down stay quiet.
         sfx.suppressAuto(1500);
-        sfx.play('drop', { intensity: 0.8 });
+        sfx.play('impact', { intensity: 0.7 });
         target?.scrollIntoView({ behavior: 'smooth' });
         window.setTimeout(() => {
           if (disposed) return;

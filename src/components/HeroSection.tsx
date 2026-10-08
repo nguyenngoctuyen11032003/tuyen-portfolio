@@ -156,7 +156,11 @@ export function HeroSection() {
             setProgress((p) => (f < 1 && Math.round(f * 100) === Math.round(p * 100) ? p : f)),
           onReady: () => {
             setFigure('ready');
-            if (readyRef.current) sfx.play('reveal', { intensity: 0.6, source: 'auto' });
+            if (readyRef.current) {
+              // The avatar landing is the page's big moment: a cinematic hit with a shimmer on top.
+              sfx.play('impact', { intensity: 0.9, source: 'auto' });
+              sfx.play('sparkle', { source: 'auto', delay: 350 });
+            }
           },
           onError: () => setFigure('failed'),
         });

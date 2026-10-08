@@ -88,15 +88,22 @@ async function gradeBaseColor(jpeg) {
     const w = skinWeight(r, g, b);
     if (!w) continue;
     // Warmer, a touch deeper and less pink: towards a natural light-tan skin.
-    const tr = r * 0.965, tg = g * 0.93 + 2, tb = b * 0.86;
+    const tr = r * 0.95, tg = g * 0.90 + 1, tb = b * 0.82;
     out[i] = Math.round(r + (tr - r) * w);
     out[i + 1] = Math.round(g + (tg - g) * w);
     out[i + 2] = Math.round(b + (tb - b) * w);
   }
-  return sharp(out, { raw: { width: info.width, height: info.height, channels: 3 } })
-    .sharpen({ sigma: 1, m1: 0.4, m2: 1.4 })
-    .jpeg({ quality: 95, chromaSubsampling: '4:4:4' })
-    .toBuffer();
+  // Skin gets a mild unsharp mask; everything else (jacket, strap, hair, cup) a stronger one so the
+  // fabric weave, piping and hair strands read crisply.
+  const rawOpts = { raw: { width: info.width, height: info.height, channels: 3 } };
+  const mild = await sharp(out, rawOpts).sharpen({ sigma: 1, m1: 0.4, m2: 1.4 }).raw().toBuffer();
+  const strong = await sharp(out, rawOpts).sharpen({ sigma: 1.4, m1: 0.9, m2: 2.4 }).raw().toBuffer();
+  const mixed = Buffer.alloc(out.length);
+  for (let i = 0; i < out.length; i += 3) {
+    const w = skinWeight(out[i], out[i + 1], out[i + 2]);
+    for (let c = 0; c < 3; c++) mixed[i + c] = Math.round(mild[i + c] * w + strong[i + c] * (1 - w));
+  }
+  return sharp(mixed, rawOpts).jpeg({ quality: 95, chromaSubsampling: '4:4:4' }).toBuffer();
 }
 
 /* -------------------------------------------------------------------- run */

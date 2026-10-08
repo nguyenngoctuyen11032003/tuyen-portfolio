@@ -1,0 +1,39 @@
+<!doctype html><meta charset="utf-8"><body style="margin:0;background:#111">
+<script type="importmap">{"imports":{"three":"/three/build/three.module.js","three/addons/":"/three/examples/jsm/"}}</script>
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+// window.renderFace(url, { yaw, unlit, size }) -> PNG data URL of the head.
+window.renderFace = async (url, opts = {}) => {
+  const size = opts.size ?? 900; const fov = opts.fov ?? 18; const dist = opts.dist ?? 0.75; const yoff = opts.yoff ?? 0;
+  const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+  renderer.setSize(size, size);
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  renderer.toneMapping = opts.unlit ? THREE.NoToneMapping : THREE.ACESFilmicToneMapping;
+  document.body.appendChild(renderer.domElement);
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x1a1a1a);
+  const pm = new THREE.PMREMGenerator(renderer);
+  scene.environment = pm.fromScene(new RoomEnvironment(), 0.04).texture;
+  scene.add(new THREE.DirectionalLight(0xffffff, 1.6).translateX(1).translateY(2).translateZ(3));
+  const loader = new GLTFLoader(); loader.setMeshoptDecoder(MeshoptDecoder);
+  const gltf = await loader.loadAsync(url);
+  const root = gltf.scene;
+  const box = new THREE.Box3().setFromObject(root);
+  root.position.sub(box.getCenter(new THREE.Vector3()));
+  if (opts.clay) root.traverse((o) => { if (o.isMesh) o.material = new THREE.MeshStandardMaterial({ color: 0xb9b2aa, roughness: 0.75 }); });
+  if (opts.unlit) root.traverse((o) => { if (o.isMesh) o.material = new THREE.MeshBasicMaterial({ map: o.material.map }); });
+  const pivot = new THREE.Group(); pivot.add(root); pivot.rotation.y = (opts.yaw ?? 0) * Math.PI / 180; scene.add(pivot);
+  const h = box.max.y - box.min.y;
+  const headY = h / 2 - h * 0.06;           // head centre, ~6% below the top
+  const cam = new THREE.PerspectiveCamera(fov, 1, 0.01, 50);
+  cam.position.set(0, headY + yoff, dist); cam.lookAt(0, headY + yoff, 0);
+  renderer.render(scene, cam);
+  const data = renderer.domElement.toDataURL('image/png');
+  renderer.dispose(); renderer.domElement.remove();
+  return data;
+};
+window.ready = true;
+</script>

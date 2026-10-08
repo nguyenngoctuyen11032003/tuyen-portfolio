@@ -304,7 +304,7 @@ export function sectionChord(index: number): readonly number[] {
 export const VOICES: Record<SoundId, VoiceSpec> = {
   /* A tiny kalimba note; the pitch wanders over three pentatonic notes so a row of hovers sounds like wind chimes. */
   hover: {
-    gainDb: -19,
+    gainDb: -13,
     minInterval: 70,
     send: 0.12,
     reduced: true,
@@ -316,7 +316,7 @@ export const VOICES: Record<SoundId, VoiceSpec> = {
 
   /* Generic button: a short marimba note. */
   tap: {
-    gainDb: -9,
+    gainDb: -6,
     minInterval: 60,
     send: 0.1,
     reduced: true,
@@ -327,7 +327,7 @@ export const VOICES: Record<SoundId, VoiceSpec> = {
 
   /* Primary CTA: a low marimba fifth with a soft halo above. */
   press: {
-    gainDb: -6,
+    gainDb: -3,
     minInterval: 120,
     send: 0.2,
     reduced: true,
@@ -442,7 +442,7 @@ export const VOICES: Record<SoundId, VoiceSpec> = {
 
   /* Pitched kalimba step on the D major pentatonic. */
   tick: {
-    gainDb: -12,
+    gainDb: -8,
     minInterval: 45,
     send: 0.12,
     reduced: true,
@@ -482,7 +482,7 @@ export const VOICES: Record<SoundId, VoiceSpec> = {
 
   /* Cinematic transition: a long breath with a low pad under it. */
   whoosh: {
-    gainDb: -10,
+    gainDb: -7,
     minInterval: 300,
     send: 0.35,
     reduced: false,
@@ -513,7 +513,7 @@ export const VOICES: Record<SoundId, VoiceSpec> = {
 
   /* Cinematic pad: D3 A3 F#4 G#4 through an opening-then-closing lowpass. */
   swell: {
-    gainDb: -14,
+    gainDb: -11,
     minInterval: 1500,
     send: 0.45,
     reduced: false,
@@ -553,7 +553,7 @@ export const VOICES: Record<SoundId, VoiceSpec> = {
 
   /* Wooden friction grain while dragging / spinning (no hiss). */
   grain: {
-    gainDb: -4,
+    gainDb: 0,
     minInterval: (intensity) => 110 - 60 * intensity,
     send: 0.1,
     reduced: false,
@@ -588,7 +588,7 @@ export const VOICES: Record<SoundId, VoiceSpec> = {
 
   /* Silver bell on a pentatonic step. */
   chime: {
-    gainDb: -9,
+    gainDb: -6,
     minInterval: 300,
     send: 0.4,
     reduced: true,
@@ -640,7 +640,7 @@ export const VOICES: Record<SoundId, VoiceSpec> = {
 
   /* ACCESS GRANTED — the signature chord. */
   granted: {
-    gainDb: -6,
+    gainDb: -3,
     minInterval: 5000,
     send: 0.45,
     reduced: false,
@@ -693,7 +693,7 @@ export const VOICES: Record<SoundId, VoiceSpec> = {
 
   /* Entering a page section: a soft strummed chord from SECTION_CHORDS (step = section index). */
   section: {
-    gainDb: -24,
+    gainDb: -17,
     minInterval: 1200,
     send: 0.5,
     reduced: false,
@@ -706,7 +706,7 @@ export const VOICES: Record<SoundId, VoiceSpec> = {
 
   /* Keyboard focus moving (Tab): a whisper of a kalimba that climbs the scale. */
   focus: {
-    gainDb: -18,
+    gainDb: -12,
     minInterval: 50,
     send: 0.1,
     reduced: true,
@@ -717,14 +717,14 @@ export const VOICES: Record<SoundId, VoiceSpec> = {
 
   /* Copied / done: a rising fourth with a little sparkle. */
   success: {
-    gainDb: -10,
+    gainDb: -8,
     minInterval: 400,
-    send: 0.3,
+    send: 0.35,
     reduced: true,
     render(k, t, o) {
       pluck(k, { freq: NOTE.A5 * o.rate, t, d: 0.22, bright: 0.5 });
       pluck(k, { freq: NOTE.D6 * o.rate, t: t + 0.08, d: 0.4, bright: 0.5 });
-      bell(k, NOTE.A6 * o.rate, t + 0.14, 0.35, -16);
+      [NOTE.Fs5, NOTE.A5, NOTE.D6, NOTE.Fs5 * 2].forEach((n, i) => bell(k, n * o.rate, t + 0.14 + i * 0.05, 0.5, -10 - i));
     },
   },
 
@@ -752,6 +752,47 @@ export const VOICES: Record<SoundId, VoiceSpec> = {
         pluck(k, { freq: n * o.rate, t: t + i * 0.06, d: 0.22 + i * 0.06, rel: -i, bright: 0.35 }),
       );
       tone(k, { freq: 165 * o.rate, to: 110 * o.rate, glide: 0.1, t: t + 0.19, a: 0.004, d: 0.18, rel: -6 });
+    },
+  },
+
+  /* Cinematic hit: a sub drop, a soft noise burst and a bell, for the biggest moments. */
+  impact: {
+    gainDb: -4,
+    minInterval: 1500,
+    send: 0.45,
+    reduced: false,
+    render(k, t, o) {
+      tone(k, { freq: 140 * o.rate, to: 38, glide: 0.5, t, a: 0.004, d: 0.9 });
+      tone(k, { freq: NOTE.D2, t, a: 0.01, d: 1.1, rel: -3 });
+      air(k, { t, a: 0.01, d: 0.45, from: 2200, to: 300, rel: -6, q: 0.5 });
+      pad(k, { freqs: [NOTE.D4 * o.rate, NOTE.A4 * o.rate, NOTE.Fs5 * o.rate], t: t + 0.02, a: 0.02, d: 1.5, rel: -10, strum: 0.03, cutoff: 2600 });
+      bell(k, NOTE.A5 * o.rate, t + 0.05, 1.2, -12);
+    },
+  },
+
+  /* A glittering run up the Lydian scale. */
+  sparkle: {
+    gainDb: -10,
+    minInterval: 500,
+    send: 0.5,
+    reduced: true,
+    render(k, t, o) {
+      const run = [NOTE.A5, NOTE.B5, NOTE.Cs6, NOTE.D6, NOTE.E6, NOTE.Gs6, NOTE.A6, NOTE.Cs7];
+      run.forEach((n, i) => bell(k, n * o.rate, t + i * 0.055, 0.5 + i * 0.05, -2 - i * 0.6));
+    },
+  },
+
+  /* Anticipation: a rising pad with a breath, to land on an impact. */
+  riser: {
+    gainDb: -9,
+    minInterval: 1500,
+    send: 0.4,
+    reduced: false,
+    render(k, t, o) {
+      const len = 0.9 + 0.5 * o.intensity;
+      air(k, { t, a: len * 0.9, d: len * 0.1, from: 200, to: 2200, rel: -2 });
+      tone(k, { freq: NOTE.D3 * o.rate, to: NOTE.D4 * o.rate, glide: len, t, a: len * 0.8, d: len * 0.2, rel: -6 });
+      tone(k, { freq: NOTE.A3 * o.rate, to: NOTE.A4 * o.rate, glide: len, t, a: len * 0.8, d: len * 0.2, rel: -9 });
     },
   },
 

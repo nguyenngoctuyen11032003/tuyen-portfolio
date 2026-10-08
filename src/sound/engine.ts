@@ -5,7 +5,7 @@ import { REDUCED_DROP, VOICES, db, minIntervalOf, type ResolvedOptions, type Voi
 
 export const SOUND_STORAGE_KEY = 'sound';
 /** Master level. Set from offline renders: -18 left hover/grain ticks near -45 dBFS, inaudible on laptop speakers. */
-export const MASTER_DB = -11;
+export const MASTER_DB = -6;
 
 const MAX_VOICES = 16;
 const REVEAL_LOCK_MS = 1200;

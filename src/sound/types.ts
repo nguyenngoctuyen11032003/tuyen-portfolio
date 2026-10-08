@@ -28,7 +28,10 @@ export type SoundId =
   | 'success'
   | 'mail'
   | 'download'
-  | 'rise';
+  | 'rise'
+  | 'impact'
+  | 'sparkle'
+  | 'riser';
 
 export const SOUND_IDS: readonly SoundId[] = [
   'hover',
@@ -61,6 +64,9 @@ export const SOUND_IDS: readonly SoundId[] = [
   'mail',
   'download',
   'rise',
+  'impact',
+  'sparkle',
+  'riser',
 ];
 
 export function isSoundId(value: unknown): value is SoundId {

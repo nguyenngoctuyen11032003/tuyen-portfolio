@@ -66,15 +66,19 @@ export function mountAvatar(o: AvatarOptions): AvatarStage {
   scene.environment = envTexture;
   scene.environmentIntensity = 0.42;
 
-  // Night-studio lighting in the site's palette: warm key (the desk lamps), emerald rim, blue fill.
-  const key = new THREE.DirectionalLight(0xffe2c4, 2.1);
+  // Portrait lighting: a warm key from the front-right, a soft neutral fill from the left so the
+  // shadow side keeps detail, a cool white hair/shoulder light from behind, and only a thin emerald
+  // edge for the site's palette. (A strong emerald rim dyed the hair and cheeks green.)
+  const key = new THREE.DirectionalLight(0xffe6cf, 2.4);
   key.position.set(1.6, 2.2, 2.4);
-  const rim = new THREE.DirectionalLight(0x34d399, 3.2);
-  rim.position.set(-2.2, 1.4, -1.8);
-  const rim2 = new THREE.DirectionalLight(0x6ee7b7, 1.4);
-  rim2.position.set(2.4, 0.8, -2);
-  const fill = new THREE.HemisphereLight(0x9db4ff, 0x05140e, 0.4);
-  scene.add(key, rim, rim2, fill);
+  const fillLight = new THREE.DirectionalLight(0xdfe6ff, 0.55);
+  fillLight.position.set(-2.4, 0.6, 1.6);
+  const hairLight = new THREE.DirectionalLight(0xeef3ff, 1.6);
+  hairLight.position.set(0.4, 2.6, -2.2);
+  const rim = new THREE.DirectionalLight(0x34d399, 1.1);
+  rim.position.set(-2.2, 1.0, -1.8);
+  const fill = new THREE.HemisphereLight(0xb8c4e6, 0x0a0d10, 0.35);
+  scene.add(key, fillLight, hairLight, rim, fill);
 
   const camera = new THREE.PerspectiveCamera(FOV, 1, 0.05, 50);
   const pivot = new THREE.Group();
@@ -223,7 +227,13 @@ export function mountAvatar(o: AvatarOptions): AvatarStage {
         if (!mesh.isMesh) return;
         const mat = mesh.material as THREE.MeshStandardMaterial;
         if (mat.map) mat.map.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
-        mat.envMapIntensity = 0.8;
+        mat.envMapIntensity = 0.6;
+        // The scan's roughness map averages ~0.54, which reads as plastic on skin and cloth.
+        // Scaling it (three clamps at 1) gives skin a soft sheen and the jacket a matte fabric look.
+        mat.roughness = 1.4;
+        mat.metalness = 0;
+        // Stronger normals bring out fabric folds, knuckles and hair strands.
+        mat.normalScale?.set(1.5, 1.5);
         for (const tex of [mat.map, mat.normalMap, mat.roughnessMap, mat.metalnessMap]) if (tex) textures.push(tex);
       });
       pivot.add(root);

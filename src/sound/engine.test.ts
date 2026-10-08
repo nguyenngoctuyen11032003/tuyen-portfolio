@@ -207,19 +207,19 @@ afterEach(() => {
 /* ---------------------------------------------------------------- tests ---- */
 
 describe('voice table', () => {
-  it('defines all 30 ids with the planned levels', () => {
-    expect(SOUND_IDS).toHaveLength(30);
+  it('defines all 33 ids with the planned levels', () => {
+    expect(SOUND_IDS).toHaveLength(33);
     expect(Object.keys(VOICES).sort()).toEqual([...SOUND_IDS].sort());
-    expect(VOICES.hover.gainDb).toBe(-19);
-    expect(VOICES.tap.gainDb).toBe(-9);
-    expect(VOICES.press.gainDb).toBe(-6);
+    expect(VOICES.hover.gainDb).toBe(-13);
+    expect(VOICES.tap.gainDb).toBe(-6);
+    expect(VOICES.press.gainDb).toBe(-3);
     expect(VOICES.section.gainDb).toBeLessThan(VOICES.press.gainDb);
     expect(minIntervalOf('grain', 1)).toBe(50);
     expect(minIntervalOf('grain', 0)).toBe(110);
     expect([...REDUCED_DROP].sort()).toEqual(
-      ['boot', 'glide', 'grain', 'granted', 'reveal', 'sand', 'section', 'swell', 'whoosh'].sort(),
+      ['boot', 'glide', 'grain', 'granted', 'impact', 'reveal', 'riser', 'sand', 'section', 'swell', 'whoosh'].sort(),
     );
-    expect(MASTER_DB).toBe(-11);
+    expect(MASTER_DB).toBe(-6);
   });
 
   it('maps pentatonic steps around D5', () => {
